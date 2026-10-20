@@ -13,7 +13,8 @@ Kies één van twee manieren.
 1. `supabase/migrations/20261020120000_schema.sql`
 2. `supabase/migrations/20261020120100_rls.sql`
 3. `supabase/migrations/20261020120200_storage.sql`
-4. Optioneel `supabase/seed.sql` voor twaalf voorbeeldadvertenties (van een demo-gebruiker). **Verwijder die demo-gebruiker voor de livegang** (Authentication → Users → demo@schoenmaatje.nl); de advertenties gaan dan automatisch mee.
+4. `supabase/migrations/20261020130000_grants.sql`: de tabelrechten. Nieuwe Supabase-projecten geven die niet meer automatisch; zonder dit bestand krijg je `permission denied for table listings`.
+5. Optioneel `supabase/seed.sql` voor twaalf voorbeeldadvertenties (van een demo-gebruiker). **Verwijder die demo-gebruiker voor de livegang** (Authentication → Users → demo@schoenmaatje.nl); de advertenties gaan dan automatisch mee.
 
 **Via de Supabase CLI.**
 ```sh
@@ -36,11 +37,26 @@ Lokaal: kopieer `.env.example` naar `.env` en vul dezelfde waarden in.
 
 Start daarna een nieuwe deploy in Netlify; de variabelen worden tijdens de build ingelezen.
 
+## Problemen oplossen
+- **`permission denied for table …`**: de tabelrechten ontbreken. Draai `20261020130000_grants.sql`.
+- **`relation "public.…" does not exist`** bij de RLS-migratie: de schemamigratie is maar half uitgevoerd (bijvoorbeeld omdat er tekst geselecteerd was; de SQL Editor draait dan alleen de selectie). Zolang er geen echte data in staat: alles opruimen en opnieuw draaien:
+  ```sql
+  drop trigger if exists on_auth_user_created on auth.users;
+  drop table if exists public.reports, public.saved_searches, public.messages, public.conversations,
+    public.listing_photos, public.listings, public.profiles cascade;
+  drop function if exists public.is_conversation_member(uuid), public.handle_new_user(), public.touch_updated_at();
+  drop type if exists public.shoe_side, public.shoe_fit, public.shoe_condition, public.shoe_color,
+    public.listing_status, public.report_reason;
+  drop policy if exists "foto uploaden in eigen map" on storage.objects;
+  drop policy if exists "eigen foto aanpassen" on storage.objects;
+  drop policy if exists "eigen foto verwijderen" on storage.objects;
+  ```
+
 ## 4. Gratis project actief houden
 Gratis Supabase-projecten pauzeren na een week zonder verkeer. Tijdens het bouwen: gewoon weer aanzetten in het dashboard. Bij de livegang: overstappen op Pro.
 
 ## Database-tests lokaal draaien
-De toegangsregels hebben tests in `supabase/tests/rls.sql`. Ze draaien op gewone PostgreSQL (16+) met een nabootsing van Supabase:
+De toegangsregels en tabelrechten hebben tests in `supabase/tests/rls.sql`. Ze draaien op gewone PostgreSQL (16+) met een nabootsing van Supabase (zonder automatische tabelrechten, zoals nieuwe projecten):
 
 ```sh
 createdb schoenmaatje_test

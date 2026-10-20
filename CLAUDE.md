@@ -27,4 +27,4 @@ Ruilplatform (Nederlandstalig) voor mensen met één voet of één been om losse
 5. **Livegang:** privacyverklaring en voorwaarden, moderatie, Supabase Pro, eigen domein, toegankelijkheids- en Lighthouse-check.
 
 ## Controleren
-`npm run build` moet slagen. Bekijk wijzigingen met `npm run dev`. Bij wijzigingen aan migraties of RLS: nieuwe migratie toevoegen (nooit een bestaande aanpassen), test toevoegen in `supabase/tests/rls.sql` en de tests draaien zoals in `docs/supabase.md`.
+`npm run build` moet slagen. Bekijk wijzigingen met `npm run dev`. Bij wijzigingen aan migraties of RLS: nieuwe migratie toevoegen (nooit een bestaande aanpassen), test toevoegen in `supabase/tests/rls.sql` en de tests draaien zoals in `docs/supabase.md`. Supabase geeft nieuwe tabellen geen automatische rechten meer: een nieuwe tabel heeft altijd expliciete `grant`s nodig voor `anon`/`authenticated`/`service_role`, naast RLS.
