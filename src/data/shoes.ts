@@ -1,7 +1,9 @@
-// Voorbeelddata voor fase 1. In fase 2 komt dit uit Supabase (tabel `listings`).
+// Types en hulpfuncties voor schoenen, plus voorbeelddata. Zonder Supabase-configuratie draait de site op deze voorbeelddata.
 export type Side = 'links' | 'rechts';
 export type Fit = 'Dames' | 'Heren' | 'Unisex';
 export type Condition = 'Als nieuw' | 'Goed' | 'Gedragen';
+
+export type Status = 'actief' | 'gereserveerd' | 'geruild' | 'verwijderd';
 
 export interface Shoe {
   id: string;
@@ -14,6 +16,11 @@ export interface Shoe {
   color: ColorName;
   place: string;
   addedAt: string;
+  status?: Status;
+  description?: string | null;
+  ownerName?: string;
+  /** Publieke foto-URL's, op volgorde. Leeg: de kaart toont de getekende schoen. */
+  photos?: string[];
 }
 
 export const COLORS = {
@@ -26,7 +33,13 @@ export const COLORS = {
   Groen: '#2F5D3A',
   Rood: '#C23B2E',
   Oranje: '#E8836B',
+  Roze: '#E9A6BE',
+  Meerkleurig: '#B9A6E0',
 } as const;
+
+/** Achtergrond voor het kleurbolletje in de filters. */
+export const swatchBackground = (name: ColorName) =>
+  name === 'Meerkleurig' ? 'conic-gradient(#C23B2E, #E8836B, #C8E85A, #7DA2C9, #2B3FD6, #C23B2E)' : COLORS[name];
 export type ColorName = keyof typeof COLORS;
 
 export const shoes: Shoe[] = [

@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="nl">
+<head><meta charset="utf-8"><meta name="robots" content="noindex"><title>Formulieren</title></head>
+<body>
+<!--
+  Alleen voor Netlify Forms-detectie. De homepage wordt op de server gerenderd, waardoor Netlify het
+  wachtlijstformulier daar niet ziet tijdens de build. Houd de velden gelijk aan src/components/SignupBlock.astro.
+-->
+<form name="interesse" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input name="bot-field">
+  <input type="radio" name="zoekt" value="links"><input type="radio" name="zoekt" value="rechts">
+  <input name="maat"><input name="pasvorm"><input type="email" name="email">
+</form>
+</body>
+</html>

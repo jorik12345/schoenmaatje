@@ -25,6 +25,11 @@ export function parseFilters(params: URLSearchParams): Filters {
   };
 }
 
+export function parsePage(params: URLSearchParams): number {
+  const n = Number(params.get('pagina'));
+  return Number.isInteger(n) && n > 1 && n <= 50 ? n : 1;
+}
+
 export function applyFilters(list: Shoe[], f: Filters): Shoe[] {
   return list
     .filter((s) => !f.zijde || s.side === f.zijde)
@@ -41,7 +46,7 @@ export function activeChips(params: URLSearchParams): { key: string; label: stri
   const chips: { key: string; label: string; href: string; side?: Side }[] = [];
   for (const [key, value] of params) {
     if (!['zijde', 'pasvorm', 'maat', 'merk', 'kleur'].includes(key)) continue;
-    const next = new URLSearchParams([...params].filter(([k, v]) => !(k === key && v === value)));
+    const next = new URLSearchParams([...params].filter(([k, v]) => !(k === key && v === value) && k !== 'pagina'));
     const qs = next.toString();
     const label = key === 'maat' ? `Maat ${formatSize(Number(value))}` : key === 'zijde' ? (value === 'links' ? 'Links' : 'Rechts') : value;
     chips.push({ key, label, href: `/aanbod${qs ? `?${qs}` : ''}`, side: key === 'zijde' ? (value as Side) : undefined });

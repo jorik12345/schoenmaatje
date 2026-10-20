@@ -232,3 +232,34 @@
   .sm-section__head { flex-direction: column; align-items: start; }
   .sm-toolbar { flex-direction: column; align-items: start; }
 }
+
+/* ShoeCard: hele kaart klikbaar via de titellink, foto's */
+.sm-card { position: relative; }
+.sm-card__link { color: inherit; text-decoration: none; }
+.sm-card__link::after { content: ""; position: absolute; inset: 0; border-radius: var(--radius-md); }
+.sm-card__link:focus-visible { outline: none; }
+.sm-card:has(.sm-card__link:focus-visible) { outline: 3px solid var(--left); outline-offset: 2px; }
+.sm-card__img { overflow: hidden; }
+.sm-card__photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.sm-card__img .sm-side, .sm-card__new { z-index: 1; }
+
+/* Detailpagina */
+.sm-back { display: inline-flex; gap: 6px; align-items: center; font-size: 15px; color: var(--ink-muted); text-decoration: none; margin-bottom: var(--space-6); }
+.sm-back:hover { color: var(--ink); text-decoration: underline; }
+.sm-detail { display: grid; grid-template-columns: 1.2fr 1fr; gap: 48px; align-items: start; }
+.sm-detail__media { position: relative; aspect-ratio: 4 / 3; border-radius: var(--radius-md); background: var(--surface); border: 1px solid var(--line); display: grid; place-items: center; overflow: hidden; }
+.sm-detail__media > svg { width: 70%; height: auto; }
+.sm-detail__media > img { width: 100%; height: 100%; object-fit: cover; }
+.sm-detail__media .sm-side { position: absolute; top: 16px; left: 16px; z-index: 1; }
+.sm-thumbs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 8px; }
+.sm-thumbs img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--line); }
+.sm-detail__title { font: 700 44px/1 var(--font-display); letter-spacing: -.02em; margin: 6px 0 16px; }
+.sm-specs { display: grid; grid-template-columns: auto 1fr; gap: 10px 24px; margin: 24px 0; padding: 20px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: 16px; }
+.sm-specs dt { color: var(--ink-muted); }
+.sm-specs dd { margin: 0; font-weight: 500; }
+.sm-detail__actions { display: grid; gap: 12px; }
+.sm-report { font-size: 14px; color: var(--ink-muted); }
+@media (max-width: 900px) {
+  .sm-detail { grid-template-columns: 1fr; gap: var(--space-6); }
+  .sm-detail__title { font-size: 36px; }
+}

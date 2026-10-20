@@ -1,0 +1,32 @@
+---
+export const prerender = false;
+
+import Base from '../../layouts/Base.astro';
+import ShoeDetail from '../../components/ShoeDetail.astro';
+import { formatSize } from '../../data/shoes';
+import { getListing, getSimilarListings } from '../../lib/listings';
+import { cacheBriefly } from '../../lib/cache';
+
+const shoe = await getListing(Astro.params.id ?? '');
+const similar = shoe ? await getSimilarListings(shoe, 3) : [];
+if (shoe) cacheBriefly(Astro);
+else Astro.response.status = 404;
+---
+{shoe ? (
+  <Base
+    title={`${shoe.brand} ${shoe.model}, ${shoe.side}, maat ${formatSize(shoe.size)}`}
+    description={`${shoe.side === 'links' ? 'Linker' : 'Rechter'} ${shoe.brand} ${shoe.model} in maat ${formatSize(shoe.size)} (${shoe.fit.toLowerCase()}), ${shoe.condition.toLowerCase()}, in ${shoe.place}. Te ruil op Schoenmaatje.`}
+    active="aanbod"
+  >
+    <ShoeDetail shoe={shoe} similar={similar} />
+  </Base>
+) : (
+  <Base title="Schoen niet gevonden" active="aanbod">
+    <div class="sm-wrap" style="padding-top:72px;padding-bottom:96px;max-width:720px">
+      <span class="sm-kicker">Niet gevonden</span>
+      <h1 class="sm-hero__title" style="font-size:56px;margin:12px 0 18px">Deze schoen is er niet meer.</h1>
+      <p class="sm-hero__lead">Misschien is hij al geruild of offline gehaald. In het aanbod staan nog genoeg andere.</p>
+      <div class="sm-hero__cta"><a class="sm-btn sm-btn--primary" href="/aanbod">Bekijk het aanbod</a></div>
+    </div>
+  </Base>
+)}

@@ -5,16 +5,19 @@ import SideChip from './SideChip.astro';
 interface Props { shoe: Shoe }
 const { shoe } = Astro.props;
 const isNew = Date.now() - new Date(shoe.addedAt).getTime() < 864e5;
+const photo = shoe.photos?.[0];
 ---
 <article class="sm-card">
   <div class="sm-card__img">
     <SideChip side={shoe.side} />
     {isNew && <span class="sm-card__new">Nieuw</span>}
-    <ShoeIcon side={shoe.side} color={COLORS[shoe.color]} />
+    {photo
+      ? <img class="sm-card__photo" src={photo} alt="" loading="lazy" decoding="async" />
+      : <ShoeIcon side={shoe.side} color={COLORS[shoe.color]} />}
   </div>
   <div class="sm-card__body">
     <span class="sm-card__brand">{shoe.brand}</span>
-    <h3 class="sm-card__title">{shoe.model}</h3>
+    <h3 class="sm-card__title"><a class="sm-card__link" href={`/schoen/${shoe.id}`}>{shoe.model}<span class="sm-visually-hidden">, {shoe.side}, maat {formatSize(shoe.size)}</span></a></h3>
     <div class="sm-card__tags">
       <span class="sm-tag">Maat {formatSize(shoe.size)}</span>
       <span class="sm-tag">{shoe.fit}</span>
