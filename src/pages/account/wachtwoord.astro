@@ -1,0 +1,46 @@
+---
+export const prerender = false;
+
+import Base from '../../layouts/Base.astro';
+import Alert from '../../components/Alert.astro';
+import { authErrorMessage } from '../../lib/auth';
+
+const { supabase, user } = Astro.locals;
+if (!supabase || !user) return Astro.redirect('/inloggen?naar=/account/wachtwoord');
+
+let error: string | null = null;
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const password = String(form.get('password') ?? '');
+  if (password.length < 8) error = 'Kies een wachtwoord van minstens 8 tekens.';
+  else if (password !== form.get('password2')) error = 'De twee wachtwoorden zijn niet gelijk.';
+  else {
+    const { error: e } = await supabase.auth.updateUser({ password });
+    if (!e) return Astro.redirect('/account?melding=wachtwoord');
+    error = authErrorMessage(e);
+  }
+}
+---
+<Base title="Wachtwoord">
+  <div class="sm-auth">
+    <div>
+      <a class="sm-back" href="/account">← Mijn account</a>
+      <h1 class="sm-h1">Wachtwoord instellen</h1>
+      <p class="sm-muted" style="margin-top:8px">Met een wachtwoord kun je ook inloggen zonder link per e-mail.</p>
+    </div>
+    {error && <Alert kind="error" title="Dat lukte niet">{error}</Alert>}
+    <form class="sm-auth__card" method="POST">
+      <input type="email" name="email" value={user.email} autocomplete="username" hidden />
+      <div class="sm-field">
+        <label for="n-password">Nieuw wachtwoord</label>
+        <input id="n-password" name="password" type="password" class="sm-input" autocomplete="new-password" minlength="8" required />
+        <span class="sm-hint">Minstens 8 tekens.</span>
+      </div>
+      <div class="sm-field">
+        <label for="n-password2">Herhaal wachtwoord</label>
+        <input id="n-password2" name="password2" type="password" class="sm-input" autocomplete="new-password" minlength="8" required />
+      </div>
+      <button class="sm-btn sm-btn--primary sm-btn--block" type="submit">Opslaan</button>
+    </form>
+  </div>
+</Base>

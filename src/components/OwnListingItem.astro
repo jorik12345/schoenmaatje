@@ -1,0 +1,43 @@
+---
+import ShoeIcon from './ShoeIcon.astro';
+import SideChip from './SideChip.astro';
+import { COLORS, formatSize } from '../data/shoes';
+import { STATUSES } from '../lib/listing-form';
+import type { OwnListing } from '../lib/account';
+interface Props { listing: OwnListing }
+const { listing: l } = Astro.props;
+const statusLabel = STATUSES.find((s) => s.value === l.status)?.label ?? l.status;
+---
+<article class="sm-own__item">
+  <div class="sm-own__thumb">
+    {l.photos?.[0] ? <img src={l.photos[0]} alt="" loading="lazy" /> : <ShoeIcon side={l.side} color={COLORS[l.color]} />}
+  </div>
+  <div>
+    <span class="sm-card__brand">{l.brand}</span>
+    <h3 class="sm-own__title">{l.status === 'actief' || l.status === 'gereserveerd' ? <a href={`/schoen/${l.id}`}>{l.model}</a> : l.model}</h3>
+    <div class="sm-own__meta">
+      <SideChip side={l.side} />
+      <span class="sm-tag">Maat {formatSize(l.size)}</span>
+      <span class:list={['sm-status', `sm-status--${l.status}`]}>{statusLabel}</span>
+    </div>
+  </div>
+  <div class="sm-own__actions">
+    <form method="POST">
+      <input type="hidden" name="_action" value="status" />
+      <input type="hidden" name="id" value={l.id} />
+      <label class="sm-visually-hidden" for={`status-${l.id}`}>Status van {l.brand} {l.model}</label>
+      <select id={`status-${l.id}`} name="status" class="sm-select" style="height:36px;width:150px;font-size:14px">
+        {STATUSES.map((s) => <option value={s.value} selected={s.value === l.status}>{s.label}</option>)}
+      </select>
+      <button class="sm-btn sm-btn--secondary sm-btn--sm" type="submit">Opslaan</button>
+    </form>
+    <div style="display:flex;gap:6px">
+      <a class="sm-btn sm-btn--ghost sm-btn--sm" href={`/account/advertentie/${l.id}`}>Bewerken</a>
+      <form method="POST" data-confirm="Weet je zeker dat je deze advertentie wilt verwijderen?">
+        <input type="hidden" name="_action" value="delete-listing" />
+        <input type="hidden" name="id" value={l.id} />
+        <button class="sm-btn sm-btn--ghost sm-btn--sm" type="submit">Verwijderen</button>
+      </form>
+    </div>
+  </div>
+</article>

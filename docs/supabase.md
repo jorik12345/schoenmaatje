@@ -14,7 +14,8 @@ Kies één van twee manieren.
 2. `supabase/migrations/20261020120100_rls.sql`
 3. `supabase/migrations/20261020120200_storage.sql`
 4. `supabase/migrations/20261020130000_grants.sql`: de tabelrechten. Nieuwe Supabase-projecten geven die niet meer automatisch; zonder dit bestand krijg je `permission denied for table listings`.
-5. Optioneel `supabase/seed.sql` voor twaalf voorbeeldadvertenties (van een demo-gebruiker). **Verwijder die demo-gebruiker voor de livegang** (Authentication → Users → demo@schoenmaatje.nl); de advertenties gaan dan automatisch mee.
+5. `supabase/migrations/20261021090000_account_delete.sql`: eigen account verwijderen.
+6. Optioneel `supabase/seed.sql` voor twaalf voorbeeldadvertenties (van een demo-gebruiker). **Verwijder die demo-gebruiker voor de livegang** (Authentication → Users → demo@schoenmaatje.nl); de advertenties gaan dan automatisch mee.
 
 **Via de Supabase CLI.**
 ```sh
@@ -78,3 +79,6 @@ Elke regel `ok  …` is een geslaagde controle; bij een fout stopt het script me
 | `reports` | meldingen van misbruik | niemand behalve beheer (service role) |
 
 Er wordt geen gezondheidsinformatie opgeslagen, alleen de schoen die iemand aanbiedt of zoekt.
+
+## Accounts
+Inloggen, e-mail en beveiliging tegen bots stel je in volgens [docs/auth.md](auth.md).

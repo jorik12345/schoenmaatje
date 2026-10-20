@@ -1,0 +1,88 @@
+---
+export const prerender = false;
+
+import Base from '../layouts/Base.astro';
+import Alert from '../components/Alert.astro';
+import FieldError from '../components/FieldError.astro';
+import Turnstile from '../components/Turnstile.astro';
+import { authErrorMessage, confirmUrl, safeNext } from '../lib/auth';
+
+const { supabase, user } = Astro.locals;
+const next = safeNext(Astro.url.searchParams.get('naar'));
+if (user) return Astro.redirect(next);
+
+// Het aanmeldblok op de homepage stuurt naam en e-mail mee in de URL.
+let name = (Astro.url.searchParams.get('naam') ?? '').slice(0, 40);
+let email = (Astro.url.searchParams.get('email') ?? '').slice(0, 200);
+const errors: Record<string, string> = {};
+let error: string | null = null;
+let sentTo: string | null = null;
+
+if (Astro.request.method === 'POST' && supabase) {
+  const form = await Astro.request.formData();
+  name = String(form.get('name') ?? '').trim();
+  email = String(form.get('email') ?? '').trim().toLowerCase();
+  const password = String(form.get('password') ?? '');
+  const captchaToken = String(form.get('cf-turnstile-response') ?? '') || undefined;
+
+  if (!name) errors.name = 'Vul een naam in. Die zien anderen bij je advertenties.';
+  else if (name.length > 40) errors.name = 'Je naam mag maximaal 40 tekens zijn.';
+  if (!/^\S+@\S+\.\S+$/.test(email)) errors.email = 'Vul een geldig e-mailadres in.';
+  if (password && password.length < 8) errors.password = 'Kies een wachtwoord van minstens 8 tekens, of laat het leeg.';
+  if (form.get('terms') !== 'ja') errors.terms = 'Ga akkoord om verder te gaan.';
+
+  if (Object.keys(errors).length === 0) {
+    const options = { emailRedirectTo: confirmUrl(Astro.url.origin, next), data: { display_name: name }, captchaToken };
+    const { error: e } = password
+      ? await supabase.auth.signUp({ email, password, options })
+      : await supabase.auth.signInWithOtp({ email, options: { ...options, shouldCreateUser: true } });
+    if (e) error = authErrorMessage(e);
+    else sentTo = email;
+  }
+}
+---
+<Base title="Account aanmaken">
+  <div class="sm-auth">
+    <div>
+      <span class="sm-kicker">Account</span>
+      <h1 class="sm-h1" style="margin-top:6px">Account aanmaken</h1>
+      <p class="sm-muted" style="margin-top:8px">Gratis. Met een account bied je schoenen aan en krijg je straks een bericht bij een match.</p>
+    </div>
+    {!supabase && <Alert kind="info" title="Accounts zijn nog niet actief">Registreren werkt zodra Supabase is ingesteld (zie docs/supabase.md).</Alert>}
+    {sentTo ? (
+      <Alert kind="success" title="Bevestig je e-mailadres">
+        We hebben een link gestuurd naar <b style="display:inline">{sentTo}</b>. Klik erop om je account te activeren. Niets ontvangen? Kijk in je spammap.
+      </Alert>
+    ) : (
+      <>
+        {error && <Alert kind="error" title="Dat lukte niet">{error}</Alert>}
+        <form class="sm-auth__card" method="POST" novalidate>
+          <div class:list={['sm-field', errors.name && 'sm-field--error']}>
+            <label for="r-name">Naam</label>
+            <input id="r-name" name="name" class="sm-input" autocomplete="given-name" maxlength="40" required value={name} aria-describedby="r-name-hint" />
+            <span class="sm-hint" id="r-name-hint">Je voornaam is genoeg. Die zien anderen bij je advertenties.</span>
+            <FieldError id="r-name-err" error={errors.name} />
+          </div>
+          <div class:list={['sm-field', errors.email && 'sm-field--error']}>
+            <label for="r-email">E-mailadres</label>
+            <input id="r-email" name="email" type="email" class="sm-input" autocomplete="email" required value={email} />
+            <FieldError id="r-email-err" error={errors.email} />
+          </div>
+          <div class:list={['sm-field', errors.password && 'sm-field--error']}>
+            <label for="r-password">Wachtwoord <span class="sm-muted" style="font-weight:400">(optioneel)</span></label>
+            <input id="r-password" name="password" type="password" class="sm-input" autocomplete="new-password" minlength="8" aria-describedby="r-password-hint" />
+            <span class="sm-hint" id="r-password-hint">Laat leeg om altijd in te loggen met een link per e-mail.</span>
+            <FieldError id="r-password-err" error={errors.password} />
+          </div>
+          <div class:list={['sm-field', errors.terms && 'sm-field--error']}>
+            <label class="sm-check"><input type="checkbox" name="terms" value="ja" required /> Ik ga ermee akkoord dat Schoenmaatje mijn naam, e-mailadres en advertenties bewaart om ruilen mogelijk te maken.</label>
+            <FieldError id="r-terms-err" error={errors.terms} />
+          </div>
+          <Turnstile />
+          <button class="sm-btn sm-btn--primary sm-btn--block" type="submit">Account aanmaken</button>
+        </form>
+      </>
+    )}
+    <p class="sm-auth__switch">Al een account? <a href="/inloggen">Inloggen</a></p>
+  </div>
+</Base>
