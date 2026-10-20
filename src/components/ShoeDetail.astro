@@ -1,0 +1,62 @@
+---
+import ShoeCard from './ShoeCard.astro';
+import ShoeIcon from './ShoeIcon.astro';
+import SideChip from './SideChip.astro';
+import { COLORS, formatSize, type Shoe } from '../data/shoes';
+interface Props { shoe: Shoe; similar: Shoe[] }
+const { shoe, similar } = Astro.props;
+const sideLabel = shoe.side === 'links' ? 'Links' : 'Rechts';
+const added = new Date(shoe.addedAt).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
+const [mainPhoto, ...morePhotos] = shoe.photos ?? [];
+---
+<div class="sm-wrap" style="padding-top:32px;padding-bottom:64px">
+  <a class="sm-back" href="/aanbod">← Terug naar het aanbod</a>
+  <div class="sm-detail">
+    <div>
+      <div class="sm-detail__media">
+        <SideChip side={shoe.side} />
+        {mainPhoto
+          ? <img src={mainPhoto} alt={`Foto van de ${shoe.side} ${shoe.brand} ${shoe.model}`} />
+          : <ShoeIcon side={shoe.side} color={COLORS[shoe.color]} />}
+      </div>
+      {morePhotos.length > 0 && (
+        <div class="sm-thumbs">{morePhotos.map((src, i) => <img src={src} alt={`Foto ${i + 2}`} loading="lazy" />)}</div>
+      )}
+    </div>
+    <div>
+      <span class="sm-card__brand">{shoe.brand}</span>
+      <h1 class="sm-detail__title">{shoe.model}</h1>
+      <div class="sm-card__tags">
+        <span class="sm-tag">Maat {formatSize(shoe.size)}</span>
+        <span class="sm-tag">{shoe.fit}</span>
+        <span class="sm-tag">{shoe.condition}</span>
+      </div>
+      {shoe.status === 'gereserveerd' && (
+        <div class="sm-notice" style="margin-top:20px"><b>Gereserveerd</b>De aanbieder is al in gesprek over deze schoen.</div>
+      )}
+      {shoe.description && <p style="margin-top:20px">{shoe.description}</p>}
+      <dl class="sm-specs">
+        <dt>Zijde</dt><dd>{sideLabel}</dd>
+        <dt>Maat</dt><dd>{formatSize(shoe.size)} (EU)</dd>
+        <dt>Pasvorm</dt><dd>{shoe.fit}</dd>
+        <dt>Kleur</dt><dd>{shoe.color}</dd>
+        <dt>Staat</dt><dd>{shoe.condition}</dd>
+        <dt>Plaats</dt><dd>{shoe.place}</dd>
+        <dt>Geplaatst</dt><dd>{added}</dd>
+        {shoe.ownerName && <><dt>Aangeboden door</dt><dd>{shoe.ownerName}</dd></>}
+      </dl>
+      <div class="sm-detail__actions">
+        <a class="sm-btn sm-btn--primary sm-btn--block" href="/#aanmelden">Stuur een bericht</a>
+        <p class="sm-hint">Berichten sturen kan zodra accounts er zijn. Laat je e-mailadres achter, dan hoor je het als eerste.</p>
+        <a class="sm-report" href={`/contact?onderwerp=melding&advertentie=${encodeURIComponent(shoe.id)}`}>Klopt er iets niet? Meld deze advertentie</a>
+      </div>
+    </div>
+  </div>
+
+  {similar.length > 0 && (
+    <section class="sm-section" style="padding-bottom:0">
+      <h2 class="sm-h2" style="margin-bottom:var(--space-6)">Meer {shoe.side} in maat {Math.floor(shoe.size)}</h2>
+      <div class="sm-grid sm-grid--3">{similar.map((s) => <ShoeCard shoe={s} />)}</div>
+    </section>
+  )}
+</div>

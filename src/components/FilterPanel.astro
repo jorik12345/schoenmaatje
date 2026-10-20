@@ -1,29 +1,32 @@
 ---
-import { COLORS, type Shoe } from '../data/shoes';
+import { COLORS, swatchBackground, type ColorName } from '../data/shoes';
 import { FITS, SIZES, type Filters } from '../data/filters';
-interface Props { filters: Filters; shoes: Shoe[] }
-const { filters, shoes } = Astro.props;
-const count = <K extends keyof Shoe>(key: K, value: Shoe[K]) => shoes.filter((s) => s[key] === value).length;
-const brands = [...new Set(shoes.map((s) => s.brand))].sort((a, b) => count('brand', b) - count('brand', a) || a.localeCompare(b));
+import type { Facets } from '../lib/listings';
+interface Props { filters: Filters; facets: Facets }
+const { filters, facets } = Astro.props;
+// Gekozen merken blijven zichtbaar, ook als ze (nu) geen actieve advertenties meer hebben.
+const brands = [...facets.brands, ...filters.merk.filter((m) => !facets.brands.some(([b]) => b === m)).map((m): [string, number] => [m, 0])];
+const groupStyle = 'margin:0;border-left:0;border-right:0;border-bottom:0';
+const legendStyle = 'padding:4px 0 0;float:left;width:100%';
 ---
 <form class="sm-filters" method="GET" action="/aanbod" aria-label="Filters" data-filters>
   <input type="hidden" name="sorteer" value={filters.sorteer} />
-  <fieldset class="sm-filters__group" style="margin:0;border-left:0;border-right:0;border-bottom:0">
-    <legend class="sm-filters__head" style="padding:4px 0 0;float:left;width:100%"><span class="sm-filters__title">Welke schoen zoek je?</span></legend>
+  <fieldset class="sm-filters__group" style={groupStyle}>
+    <legend class="sm-filters__head" style={legendStyle}><span class="sm-filters__title">Welke schoen zoek je?</span></legend>
     <div class="sm-seg sm-seg--block" style="grid-template-columns:repeat(3,1fr)">
       <label><input type="radio" name="zijde" value="" checked={!filters.zijde} /><span>Beide</span></label>
       <label><input type="radio" name="zijde" value="links" checked={filters.zijde === 'links'} /><span>Links</span></label>
       <label><input type="radio" name="zijde" value="rechts" checked={filters.zijde === 'rechts'} /><span>Rechts</span></label>
     </div>
   </fieldset>
-  <fieldset class="sm-filters__group" style="margin:0;border-left:0;border-right:0;border-bottom:0">
-    <legend class="sm-filters__head" style="padding:4px 0 0;float:left;width:100%"><span class="sm-filters__title">Pasvorm</span></legend>
+  <fieldset class="sm-filters__group" style={groupStyle}>
+    <legend class="sm-filters__head" style={legendStyle}><span class="sm-filters__title">Pasvorm</span></legend>
     {FITS.map((f) => (
-      <label class="sm-check"><input type="checkbox" name="pasvorm" value={f} checked={filters.pasvorm.includes(f)} />{f} <span class="sm-count">{count('fit', f)}</span></label>
+      <label class="sm-check"><input type="checkbox" name="pasvorm" value={f} checked={filters.pasvorm.includes(f)} />{f} <span class="sm-count">{facets.fits[f] ?? 0}</span></label>
     ))}
   </fieldset>
-  <fieldset class="sm-filters__group" style="margin:0;border-left:0;border-right:0;border-bottom:0">
-    <legend class="sm-filters__head" style="padding:4px 0 0;float:left;width:100%"><span class="sm-filters__title">Maat (EU)</span></legend>
+  <fieldset class="sm-filters__group" style={groupStyle}>
+    <legend class="sm-filters__head" style={legendStyle}><span class="sm-filters__title">Maat (EU)</span></legend>
     <div class="sm-sizes">
       {SIZES.map((s) => (
         <label><input type="checkbox" name="maat" value={s} checked={filters.maat.includes(s)} /><span>{s}</span></label>
@@ -31,17 +34,19 @@ const brands = [...new Set(shoes.map((s) => s.brand))].sort((a, b) => count('bra
     </div>
     <span class="sm-hint">Een hele maat toont ook de halve maat erboven.</span>
   </fieldset>
-  <fieldset class="sm-filters__group" style="margin:0;border-left:0;border-right:0;border-bottom:0">
-    <legend class="sm-filters__head" style="padding:4px 0 0;float:left;width:100%"><span class="sm-filters__title">Merk</span></legend>
-    {brands.map((b) => (
-      <label class="sm-check"><input type="checkbox" name="merk" value={b} checked={filters.merk.includes(b)} />{b} <span class="sm-count">{count('brand', b)}</span></label>
-    ))}
-  </fieldset>
-  <fieldset class="sm-filters__group" style="margin:0;border-left:0;border-right:0;border-bottom:0">
-    <legend class="sm-filters__head" style="padding:4px 0 0;float:left;width:100%"><span class="sm-filters__title">Kleur</span></legend>
+  {brands.length > 0 && (
+    <fieldset class="sm-filters__group" style={groupStyle}>
+      <legend class="sm-filters__head" style={legendStyle}><span class="sm-filters__title">Merk</span></legend>
+      {brands.map(([b, n]) => (
+        <label class="sm-check"><input type="checkbox" name="merk" value={b} checked={filters.merk.includes(b)} />{b} <span class="sm-count">{n}</span></label>
+      ))}
+    </fieldset>
+  )}
+  <fieldset class="sm-filters__group" style={groupStyle}>
+    <legend class="sm-filters__head" style={legendStyle}><span class="sm-filters__title">Kleur</span></legend>
     <div class="sm-swatches">
-      {Object.entries(COLORS).map(([name, hex]) => (
-        <label title={name}><input type="checkbox" name="kleur" value={name} checked={filters.kleur.includes(name as keyof typeof COLORS)} aria-label={name} /><span class="sm-swatch" style={`background:${hex}`}></span></label>
+      {(Object.keys(COLORS) as ColorName[]).map((name) => (
+        <label title={name}><input type="checkbox" name="kleur" value={name} checked={filters.kleur.includes(name)} aria-label={name} /><span class="sm-swatch" style={`background:${swatchBackground(name)}`}></span></label>
       ))}
     </div>
   </fieldset>

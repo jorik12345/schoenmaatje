@@ -13,6 +13,7 @@ import Base from '../layouts/Base.astro';
       </div>
       <form class="sm-filters" style="padding:32px;display:grid;gap:20px" name="contact" method="POST" action="/bedankt" data-netlify="true" netlify-honeypot="bot-field">
         <input type="hidden" name="form-name" value="contact" />
+        <input type="hidden" name="advertentie" id="c-advertentie" />
         <p class="sm-visually-hidden"><label>Niet invullen <input name="bot-field" tabindex="-1" autocomplete="off" /></label></p>
         <h2 class="sm-h2">Stuur ons een bericht</h2>
         <div class="sm-signup__row">
@@ -37,4 +38,8 @@ import Base from '../layouts/Base.astro';
   const onderwerp = new URLSearchParams(location.search).get('onderwerp');
   const select = document.querySelector<HTMLSelectElement>('#c-onderwerp');
   if (onderwerp && select && [...select.options].some((o) => o.value === onderwerp)) select.value = onderwerp;
+  // ?advertentie=<id> (vanaf een detailpagina) gaat mee met het bericht.
+  const advertentie = new URLSearchParams(location.search).get('advertentie');
+  const hidden = document.querySelector<HTMLInputElement>('#c-advertentie');
+  if (advertentie && hidden) hidden.value = advertentie.slice(0, 64);
 </script>

@@ -1,24 +1,30 @@
 ---
+export const prerender = false;
+
 import Base from '../layouts/Base.astro';
 import Hero from '../components/Hero.astro';
 import Steps from '../components/Steps.astro';
 import ShoeCard from '../components/ShoeCard.astro';
 import SignupBlock from '../components/SignupBlock.astro';
-import { shoes } from '../data/shoes';
+import { getFacets, getRecentListings } from '../lib/listings';
+import { cacheBriefly } from '../lib/cache';
 
-const recent = [...shoes].sort((a, b) => b.addedAt.localeCompare(a.addedAt)).slice(0, 4);
-const sizes = shoes.map((s) => s.size);
+const [recent, facets] = await Promise.all([getRecentListings(4), getFacets()]);
+const sizes = facets.sizeRange ? `${Math.floor(facets.sizeRange[0])}–${Math.ceil(facets.sizeRange[1])}` : '–';
+cacheBriefly(Astro);
 ---
 <Base title="Schoenmaatje" active="home">
-  <Hero count={shoes.length} brands={new Set(shoes.map((s) => s.brand)).size} sizes={`${Math.floor(Math.min(...sizes))}–${Math.ceil(Math.max(...sizes))}`} />
+  <Hero count={facets.total} brands={facets.brands.length} sizes={sizes} />
 
   <section class="sm-section">
     <div class="sm-wrap">
       <div class="sm-section__head">
         <div><span class="sm-kicker">Net binnen</span><h2 class="sm-h1" style="margin-top:6px">Recent toegevoegd</h2></div>
-        <a class="sm-btn sm-btn--secondary sm-btn--sm" href="/aanbod">Alle {shoes.length} schoenen</a>
+        <a class="sm-btn sm-btn--secondary sm-btn--sm" href="/aanbod">Alle {facets.total} schoenen</a>
       </div>
-      <div class="sm-grid sm-grid--4">{recent.map((shoe) => <ShoeCard shoe={shoe} />)}</div>
+      {recent.length > 0
+        ? <div class="sm-grid sm-grid--4">{recent.map((shoe) => <ShoeCard shoe={shoe} />)}</div>
+        : <div class="sm-notice"><b>Nog geen schoenen online.</b>Zodra de eerste advertenties er zijn, zie je ze hier.</div>}
     </div>
   </section>
 
