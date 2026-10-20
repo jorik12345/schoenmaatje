@@ -1,0 +1,6 @@
+---
+import type { Side } from '../data/shoes';
+interface Props { side: Side }
+const { side } = Astro.props;
+---
+<span class:list={['sm-side', side === 'links' ? 'sm-side--left' : 'sm-side--right']}>{side === 'links' ? 'Links' : 'Rechts'}</span>

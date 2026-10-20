@@ -1,0 +1,14 @@
+---
+// Schematische sneaker voor als er (nog) geen foto is. Links wordt gespiegeld zodat de neus naar links wijst.
+import type { Side } from '../data/shoes';
+interface Props { side: Side; color?: string }
+const { side, color = '#FFFFFF' } = Astro.props;
+---
+<svg viewBox="0 0 120 64" aria-hidden="true">
+  <g transform={side === 'links' ? 'translate(120 0) scale(-1 1)' : undefined} stroke="#16182B" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M10 46 C10 32 16 24 28 24 L44 24 L52 11 L68 13 C74 27 88 33 104 35 C112 36 114 41 112 46 Z" fill={color} />
+    <path d="M8 46 H112 A6 6 0 0 1 112 58 H14 A6 6 0 0 1 8 52 Z" fill="#F2F3EE" />
+    <path d="M56 20 L64 26 M60 16 L68 22 M66 24 L72 30" fill="none" />
+    <path d="M28 24 C30 32 38 36 48 36" fill="none" />
+  </g>
+</svg>

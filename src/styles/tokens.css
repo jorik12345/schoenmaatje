@@ -1,0 +1,21 @@
+/* Schoenmaatje — tokens, overgenomen uit het design system (tokens.json). */
+:root {
+  --paper: #F2F3EE;
+  --surface: #FFFFFF;
+  --ink: #16182B;
+  --ink-muted: #55586B;
+  --line: #D6D8CF;
+  --left: #2B3FD6;
+  --right: #C8E85A;
+  --blush: #F5BCD0;
+  --danger: #B3261E;
+  --space-2: 8px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-10: 40px;
+  --radius-sm: 6px;
+  --radius-md: 14px;
+  --radius-pill: 999px;
+  --font-display: "Bricolage Grotesque", "Arial Narrow", system-ui, sans-serif;
+  --font-sans: "Figtree", system-ui, sans-serif;
+}

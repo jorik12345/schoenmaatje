@@ -1,0 +1,40 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Contact" active="contact">
+  <div class="sm-wrap" style="padding-top:48px;padding-bottom:72px">
+    <div class="sm-layout-contact">
+      <div>
+        <span class="sm-kicker">Contact</span>
+        <h1 class="sm-hero__title" style="font-size:56px;margin:12px 0 18px">Vraag, idee of iets niet in orde?</h1>
+        <p class="sm-hero__lead">We zijn een klein team van vrijwilligers. Je krijgt binnen twee werkdagen antwoord van een mens.</p>
+        <div class="sm-info" style="margin-top:32px"><span class="sm-info__label">Reactietijd</span><span class="sm-info__value">Binnen 2 werkdagen</span></div>
+        <div class="sm-notice" style="margin-top:16px"><b>Vraag over een specifieke ruil?</b>Zodra accounts er zijn, stuur je die via de advertentie zelf. Zo komt je bericht direct bij de aanbieder.</div>
+      </div>
+      <form class="sm-filters" style="padding:32px;display:grid;gap:20px" name="contact" method="POST" action="/bedankt" data-netlify="true" netlify-honeypot="bot-field">
+        <input type="hidden" name="form-name" value="contact" />
+        <p class="sm-visually-hidden"><label>Niet invullen <input name="bot-field" tabindex="-1" autocomplete="off" /></label></p>
+        <h2 class="sm-h2">Stuur ons een bericht</h2>
+        <div class="sm-signup__row">
+          <div class="sm-field"><label for="c-naam">Naam</label><input id="c-naam" name="naam" class="sm-input" autocomplete="name" required /></div>
+          <div class="sm-field"><label for="c-email">E-mailadres</label><input id="c-email" name="email" class="sm-input" type="email" autocomplete="email" required /></div>
+        </div>
+        <div class="sm-field"><label for="c-onderwerp">Onderwerp</label>
+          <select id="c-onderwerp" name="onderwerp" class="sm-select">
+            <option value="vraag">Algemene vraag</option>
+            <option value="account">Hulp bij mijn account</option>
+            <option value="melding">Een advertentie melden</option>
+            <option value="samenwerken">Samenwerken</option>
+          </select></div>
+        <div class="sm-field"><label for="c-bericht">Bericht</label><textarea id="c-bericht" name="bericht" class="sm-textarea" required></textarea><span class="sm-hint">Noem je maat en merk als het over een schoen gaat.</span></div>
+        <div><button class="sm-btn sm-btn--primary" type="submit">Bericht versturen</button></div>
+      </form>
+    </div>
+  </div>
+</Base>
+<script>
+  // ?onderwerp=melding (bijv. vanuit de footer) kiest alvast het juiste onderwerp.
+  const onderwerp = new URLSearchParams(location.search).get('onderwerp');
+  const select = document.querySelector<HTMLSelectElement>('#c-onderwerp');
+  if (onderwerp && select && [...select.options].some((o) => o.value === onderwerp)) select.value = onderwerp;
+</script>

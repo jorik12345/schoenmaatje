@@ -1,0 +1,33 @@
+---
+import '../styles/tokens.css';
+import '../styles/components.css';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  active?: 'home' | 'aanbod' | 'werkwijze' | 'contact';
+}
+const { title, description = 'Schoenmaatje: ruil de schoen die je niet draagt. Een ruilplatform voor mensen met één voet of één been.', active } = Astro.props;
+const fullTitle = title === 'Schoenmaatje' ? title : `${title} · Schoenmaatje`;
+---
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;700&display=swap" />
+  </head>
+  <body class="sm" style="margin:0">
+    <a class="sm-skip" href="#inhoud">Naar de inhoud</a>
+    <SiteHeader active={active} />
+    <main id="inhoud"><slot /></main>
+    <SiteFooter />
+  </body>
+</html>
