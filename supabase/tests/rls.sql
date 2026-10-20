@@ -23,7 +23,7 @@ begin; set local role anon;
 select pg_temp.ok((select count(*) from listings) = 12, 'anon ziet 12 actieve advertenties');
 select pg_temp.ok((select count(*) from profiles) = 3, 'anon ziet profielen');
 select pg_temp.expect_denied($$insert into listings (owner_id, side, brand, model, size, fit, color, condition, place) values ('00000000-0000-4000-8000-000000000001','links','X','Y',42,'Heren','Wit','Goed','Z')$$, 'anon kan geen advertentie plaatsen');
-select pg_temp.ok((select count(*) from reports) = 0, 'anon ziet geen meldingen');
+select pg_temp.expect_denied($$select * from reports$$, 'anon ziet geen meldingen');
 commit;
 
 -- A zet een advertentie op geruild -----------------------------------
@@ -50,7 +50,7 @@ select pg_temp.ok(true, 'B start gesprek en stuurt bericht');
 select pg_temp.expect_denied($$insert into conversations (listing_id, starter_id) select id, '00000000-0000-4000-8000-00000000000b' from listings where model = 'Dunk'$$, 'B kan geen gesprek starten op eigen advertentie');
 insert into saved_searches (user_id, side, size) values ('00000000-0000-4000-8000-00000000000b', 'links', 43);
 insert into reports (listing_id, reporter_id, reason) select id, '00000000-0000-4000-8000-00000000000b', 'spam' from listings where model = '574';
-select pg_temp.ok((select count(*) from reports) = 0, 'B kan melden maar meldingen niet lezen');
+select pg_temp.expect_denied($$select * from reports$$, 'B kan melden maar meldingen niet lezen');
 insert into storage.objects (bucket_id, name) values ('listing-photos', '00000000-0000-4000-8000-00000000000b/x/1.jpg');
 select pg_temp.ok(true, 'B uploadt foto in eigen map');
 select pg_temp.expect_denied($$insert into storage.objects (bucket_id, name) values ('listing-photos', '00000000-0000-4000-8000-000000000001/x/1.jpg')$$, 'B kan niet uploaden in map van A');
@@ -80,4 +80,17 @@ select pg_temp.expect_denied(format($$insert into messages (conversation_id, sen
 commit;
 begin; set local role authenticated; set local request.jwt.claim.sub = '00000000-0000-4000-8000-00000000000b';
 select pg_temp.expect_denied(format($$insert into messages (conversation_id, sender_id, body) values (%L, '00000000-0000-4000-8000-000000000001', 'namens A')$$, :'conv'), 'B kan niet namens A schrijven');
+commit;
+
+-- Tabelrechten (grants) -------------------------------------------------
+begin; set local role anon;
+select pg_temp.expect_denied($$select * from saved_searches$$, 'anon heeft geen toegang tot zoekopdrachten');
+select pg_temp.expect_denied($$select * from messages$$, 'anon heeft geen toegang tot berichten');
+commit;
+begin; set local role authenticated; set local request.jwt.claim.sub = '00000000-0000-4000-8000-00000000000b';
+select pg_temp.expect_denied($$update listings set owner_id = '00000000-0000-4000-8000-00000000000b'$$, 'eigenaar van een advertentie is niet te wijzigen');
+select pg_temp.expect_denied($$update profiles set created_at = now()$$, 'alleen naam en plaats van een profiel zijn te wijzigen');
+select pg_temp.expect_denied($$select * from reports$$, 'gebruikers kunnen meldingen niet lezen');
+with u as (update listings set status = 'gereserveerd' where model = 'Dunk' returning 1) select pg_temp.ok((select count(*) from u) = 1, 'B kan status van eigen advertentie wijzigen');
+with u as (update profiles set place = 'Delft' where id = '00000000-0000-4000-8000-00000000000b' returning 1) select pg_temp.ok((select count(*) from u) = 1, 'B kan eigen plaats wijzigen');
 commit;
