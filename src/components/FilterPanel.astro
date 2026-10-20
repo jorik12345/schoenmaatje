@@ -1,0 +1,62 @@
+---
+import { COLORS, type Shoe } from '../data/shoes';
+import { FITS, SIZES, type Filters } from '../data/filters';
+interface Props { filters: Filters; shoes: Shoe[] }
+const { filters, shoes } = Astro.props;
+const count = <K extends keyof Shoe>(key: K, value: Shoe[K]) => shoes.filter((s) => s[key] === value).length;
+const brands = [...new Set(shoes.map((s) => s.brand))].sort((a, b) => count('brand', b) - count('brand', a) || a.localeCompare(b));
+---
+<form class="sm-filters" method="GET" action="/aanbod" aria-label="Filters" data-filters>
+  <input type="hidden" name="sorteer" value={filters.sorteer} />
+  <fieldset class="sm-filters__group" style="margin:0;border-left:0;border-right:0;border-bottom:0">
+    <legend class="sm-filters__head" style="padding:4px 0 0;float:left;width:100%"><span class="sm-filters__title">Welke schoen zoek je?</span></legend>
+    <div class="sm-seg sm-seg--block" style="grid-template-columns:repeat(3,1fr)">
+      <label><input type="radio" name="zijde" value="" checked={!filters.zijde} /><span>Beide</span></label>
+      <label><input type="radio" name="zijde" value="links" checked={filters.zijde === 'links'} /><span>Links</span></label>
+      <label><input type="radio" name="zijde" value="rechts" checked={filters.zijde === 'rechts'} /><span>Rechts</span></label>
+    </div>
+  </fieldset>
+  <fieldset class="sm-filters__group" style="margin:0;border-left:0;border-right:0;border-bottom:0">
+    <legend class="sm-filters__head" style="padding:4px 0 0;float:left;width:100%"><span class="sm-filters__title">Pasvorm</span></legend>
+    {FITS.map((f) => (
+      <label class="sm-check"><input type="checkbox" name="pasvorm" value={f} checked={filters.pasvorm.includes(f)} />{f} <span class="sm-count">{count('fit', f)}</span></label>
+    ))}
+  </fieldset>
+  <fieldset class="sm-filters__group" style="margin:0;border-left:0;border-right:0;border-bottom:0">
+    <legend class="sm-filters__head" style="padding:4px 0 0;float:left;width:100%"><span class="sm-filters__title">Maat (EU)</span></legend>
+    <div class="sm-sizes">
+      {SIZES.map((s) => (
+        <label><input type="checkbox" name="maat" value={s} checked={filters.maat.includes(s)} /><span>{s}</span></label>
+      ))}
+    </div>
+    <span class="sm-hint">Een hele maat toont ook de halve maat erboven.</span>
+  </fieldset>
+  <fieldset class="sm-filters__group" style="margin:0;border-left:0;border-right:0;border-bottom:0">
+    <legend class="sm-filters__head" style="padding:4px 0 0;float:left;width:100%"><span class="sm-filters__title">Merk</span></legend>
+    {brands.map((b) => (
+      <label class="sm-check"><input type="checkbox" name="merk" value={b} checked={filters.merk.includes(b)} />{b} <span class="sm-count">{count('brand', b)}</span></label>
+    ))}
+  </fieldset>
+  <fieldset class="sm-filters__group" style="margin:0;border-left:0;border-right:0;border-bottom:0">
+    <legend class="sm-filters__head" style="padding:4px 0 0;float:left;width:100%"><span class="sm-filters__title">Kleur</span></legend>
+    <div class="sm-swatches">
+      {Object.entries(COLORS).map(([name, hex]) => (
+        <label title={name}><input type="checkbox" name="kleur" value={name} checked={filters.kleur.includes(name as keyof typeof COLORS)} aria-label={name} /><span class="sm-swatch" style={`background:${hex}`}></span></label>
+      ))}
+    </div>
+  </fieldset>
+  <div class="sm-filters__group" data-submit-row>
+    <button class="sm-btn sm-btn--primary sm-btn--block" type="submit">Toon resultaten</button>
+  </div>
+</form>
+<script>
+  // Met JavaScript: filters direct toepassen en de knop verbergen. Zonder JavaScript werkt de knop.
+  const form = document.querySelector<HTMLFormElement>('[data-filters]');
+  form?.querySelector<HTMLElement>('[data-submit-row]')?.setAttribute('hidden', '');
+  form?.addEventListener('change', () => {
+    // Lege velden (zoals zijde=Beide) niet in de URL zetten.
+    const params = new URLSearchParams();
+    for (const [k, v] of new FormData(form)) if (v !== '') params.append(k, String(v));
+    location.href = `/aanbod${params.size ? `?${params}` : ''}`;
+  });
+</script>

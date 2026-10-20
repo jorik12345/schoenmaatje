@@ -1,0 +1,31 @@
+---
+interface Props { active?: 'home' | 'aanbod' | 'werkwijze' | 'contact' }
+const { active } = Astro.props;
+const nav = [
+  { key: 'home', href: '/', label: 'Home' },
+  { key: 'aanbod', href: '/aanbod', label: 'Aanbod' },
+  { key: 'werkwijze', href: '/zo-werkt-het', label: 'Zo werkt het' },
+  { key: 'contact', href: '/contact', label: 'Contact' },
+];
+---
+<header class="sm-header" data-header>
+  <div class="sm-wrap sm-header__in">
+    <a class="sm-logo" href="/"><span class="sm-logo__mark" aria-hidden="true"><i></i><i></i></span>Schoenmaatje</a>
+    <nav class="sm-nav" id="hoofdmenu" aria-label="Hoofdmenu">
+      {nav.map((n) => <a href={n.href} aria-current={n.key === active ? 'page' : undefined}>{n.label}</a>)}
+    </nav>
+    <div class="sm-header__actions">
+      <a class="sm-btn sm-btn--ghost" href="/#aanmelden">Inloggen</a>
+      <a class="sm-btn sm-btn--primary" href="/#aanmelden">Schoen aanbieden</a>
+      <button class="sm-btn sm-btn--secondary sm-btn--sm sm-header__menu" type="button" aria-expanded="false" aria-controls="hoofdmenu" data-menu-toggle>Menu</button>
+    </div>
+  </div>
+</header>
+<script>
+  const header = document.querySelector('[data-header]');
+  const toggle = document.querySelector('[data-menu-toggle]');
+  toggle?.addEventListener('click', () => {
+    const open = header?.classList.toggle('sm-header--open') ?? false;
+    toggle.setAttribute('aria-expanded', String(open));
+  });
+</script>

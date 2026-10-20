@@ -1,0 +1,52 @@
+---
+export const prerender = false;
+
+import Base from '../layouts/Base.astro';
+import FilterPanel from '../components/FilterPanel.astro';
+import ShoeCard from '../components/ShoeCard.astro';
+import { shoes } from '../data/shoes';
+import { activeChips, applyFilters, parseFilters } from '../data/filters';
+
+const params = Astro.url.searchParams;
+const filters = parseFilters(params);
+const results = applyFilters(shoes, filters);
+const chips = activeChips(params);
+const sortHref = (s: string) => {
+  const next = new URLSearchParams(params);
+  next.set('sorteer', s);
+  return `/aanbod?${next}`;
+};
+---
+<Base title="Aanbod" active="aanbod" description="Bekijk alle schoenen die op Schoenmaatje worden aangeboden, en filter op links of rechts, maat, merk en kleur.">
+  <div class="sm-wrap" style="padding-top:40px;padding-bottom:64px">
+    <span class="sm-kicker">Aanbod</span>
+    <h1 class="sm-h1" style="margin:6px 0 28px">Schoenen zoeken een maatje</h1>
+    <div class="sm-layout-aanbod">
+      <FilterPanel filters={filters} shoes={shoes} />
+      <div>
+        <div class="sm-toolbar">
+          <span role="status"><b>{results.length} {results.length === 1 ? 'schoen' : 'schoenen'}</b> <span class="sm-muted">gevonden</span></span>
+          <nav aria-label="Sorteren" style="display:flex;gap:4px;align-items:center">
+            <span class="sm-label" style="margin-right:6px">Sorteer</span>
+            <a class="sm-btn sm-btn--sm" class:list={[filters.sorteer === 'nieuw' ? 'sm-btn--secondary' : 'sm-btn--ghost']} href={sortHref('nieuw')} aria-current={filters.sorteer === 'nieuw' ? 'true' : undefined}>Nieuwste</a>
+            <a class="sm-btn sm-btn--sm" class:list={[filters.sorteer === 'maat' ? 'sm-btn--secondary' : 'sm-btn--ghost']} href={sortHref('maat')} aria-current={filters.sorteer === 'maat' ? 'true' : undefined}>Maat</a>
+          </nav>
+        </div>
+        {chips.length > 0 && (
+          <div class="sm-active">
+            {chips.map((c) => c.side
+              ? <a class:list={['sm-side', c.side === 'links' ? 'sm-side--left' : 'sm-side--right']} href={c.href} aria-label={`Filter ${c.label} weghalen`} style="text-decoration:none">{c.label} ×</a>
+              : <a class="sm-tag sm-tag--removable" href={c.href} aria-label={`Filter ${c.label} weghalen`} style="text-decoration:none">{c.label}</a>)}
+            <a class="sm-filters__reset" href="/aanbod" style="margin-left:6px">Alles wissen</a>
+          </div>
+        )}
+        {results.length > 0
+          ? <div class="sm-grid sm-grid--3">{results.map((shoe) => <ShoeCard shoe={shoe} />)}</div>
+          : <div class="sm-notice"><b>Geen schoenen met deze filters.</b>Haal een filter weg, of laat je e-mailadres achter op de <a href="/#aanmelden">homepage</a>, dan hoor je het als er een schoen in jouw maat bij komt.</div>}
+        {results.length > 0 && (
+          <div class="sm-notice" style="margin-top:40px"><b>Niet gevonden wat je zoekt?</b>Laat je e-mailadres achter op de <a href="/#aanmelden">homepage</a>. We sturen je een bericht zodra je een zoekopdracht kunt opslaan.</div>
+        )}
+      </div>
+    </div>
+  </div>
+</Base>

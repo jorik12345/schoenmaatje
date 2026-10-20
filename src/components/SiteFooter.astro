@@ -1,0 +1,23 @@
+---
+const cols = [
+  { title: 'Platform', links: [['Aanbod bekijken', '/aanbod'], ['Schoen aanbieden', '/#aanmelden'], ['Zo werkt het', '/zo-werkt-het']] },
+  { title: 'Hulp', links: [['Contact', '/contact'], ['Melding maken', '/contact?onderwerp=melding']] },
+];
+---
+<footer class="sm-footer">
+  <div class="sm-wrap">
+    <div class="sm-footer__cols">
+      <div>
+        <a class="sm-logo" href="/"><span class="sm-logo__mark" aria-hidden="true"><i></i><i></i></span>Schoenmaatje</a>
+        <p class="sm-footer__text">Een ruilplatform voor mensen met één voet of één been. Gratis, door en voor de community.</p>
+      </div>
+      {cols.map((c) => (
+        <div>
+          <h3>{c.title}</h3>
+          <ul>{c.links.map(([label, href]) => <li><a href={href}>{label}</a></li>)}</ul>
+        </div>
+      ))}
+    </div>
+    <div class="sm-footer__bar"><span>© {new Date().getFullYear()} Schoenmaatje</span><span>Privacy en voorwaarden volgen bij de lancering</span></div>
+  </div>
+</footer>

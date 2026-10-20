@@ -1,0 +1,28 @@
+---
+import ShoeIcon from './ShoeIcon.astro';
+interface Props { count: number; brands: number; sizes: string }
+const { count, brands, sizes } = Astro.props;
+---
+<section class="sm-hero">
+  <div class="sm-wrap sm-hero__in">
+    <div>
+      <span class="sm-kicker">Ruilplatform voor één voet of één been</span>
+      <h1 class="sm-hero__title">Je koopt een paar. Je draagt er één.</h1>
+      <p class="sm-hero__lead">Schoenmaatje koppelt je aan iemand met dezelfde maat en de andere voet. Jij biedt je overgebleven schoen aan, de ander die van hen. Zo heeft ieder er eentje.</p>
+      <div class="sm-hero__cta">
+        <a class="sm-btn sm-btn--primary" href="/aanbod">Bekijk het aanbod</a>
+        <a class="sm-btn sm-btn--secondary" href="#aanmelden">Schoen aanbieden</a>
+      </div>
+      <div class="sm-hero__facts">
+        <span><b>{count}</b>schoenen online</span>
+        <span><b>{brands}</b>merken</span>
+        <span><b>{sizes}</b>maten</span>
+      </div>
+    </div>
+    <div class="sm-hero__art" aria-hidden="true">
+      <div class="sm-hero__panel sm-hero__panel--l"><span class="sm-side">Links</span><ShoeIcon side="links" /></div>
+      <div class="sm-hero__panel sm-hero__panel--r"><span class="sm-side">Rechts</span><ShoeIcon side="rechts" /></div>
+      <span class="sm-hero__match">Maat 43 · match</span>
+    </div>
+  </div>
+</section>
