@@ -1,38 +1,20 @@
 ---
-// Fase 1: nog geen accounts. Dit formulier zet mensen via Netlify Forms op de interesselijst.
-const sizes = Array.from({ length: 15 }, (_, i) => 34 + i);
+// Eerste stap van registreren: naam en e-mail gaan mee naar /registreren, waar de beveiligingscheck staat.
 ---
 <div class="sm-signup" id="aanmelden">
   <div>
     <h2 class="sm-signup__title">Vind jouw schoenmaatje.</h2>
-    <p class="sm-signup__text">Accounts komen binnenkort. Laat alvast weten welke schoen je zoekt, dan sturen we je een bericht zodra je kunt beginnen.</p>
+    <p class="sm-signup__text">Maak een gratis account en bied de schoen aan die je niet draagt. Zo vindt iemand anders precies wat die zoekt, en jij misschien ook.</p>
     <ul class="sm-signup__list">
-      <li>Een seintje bij een nieuwe match in jouw maat</li>
-      <li>Schoenen aanbieden in twee minuten</li>
+      <li>Schoenen aanbieden in een paar minuten</li>
+      <li>Inloggen met een link per e-mail, geen wachtwoord nodig</li>
       <li>Gratis, zonder reclame</li>
     </ul>
   </div>
-  <form class="sm-signup__form" name="interesse" method="POST" action="/bedankt" data-netlify="true" netlify-honeypot="bot-field">
-    <input type="hidden" name="form-name" value="interesse" />
-    <p class="sm-visually-hidden"><label>Niet invullen <input name="bot-field" tabindex="-1" autocomplete="off" /></label></p>
-    <fieldset class="sm-field" style="border:0;padding:0;margin:0">
-      <legend class="sm-label" style="margin-bottom:6px">Welke schoen zoek je?</legend>
-      <div class="sm-seg sm-seg--block">
-        <label><input type="radio" name="zoekt" value="links" required /><span>Links</span></label>
-        <label><input type="radio" name="zoekt" value="rechts" /><span>Rechts</span></label>
-      </div>
-    </fieldset>
-    <div class="sm-signup__row">
-      <div class="sm-field"><label for="aanmelden-maat">Maat</label>
-        <select id="aanmelden-maat" name="maat" class="sm-select" required>
-          <option value="">Kies</option>
-          {sizes.map((s) => <option value={s}>{s}</option>)}
-        </select></div>
-      <div class="sm-field"><label for="aanmelden-pasvorm">Pasvorm</label>
-        <select id="aanmelden-pasvorm" name="pasvorm" class="sm-select"><option>Dames</option><option>Heren</option><option>Unisex</option></select></div>
-    </div>
+  <form class="sm-signup__form" method="GET" action="/registreren">
+    <div class="sm-field"><label for="aanmelden-naam">Naam</label><input id="aanmelden-naam" name="naam" autocomplete="given-name" class="sm-input" maxlength="40" /></div>
     <div class="sm-field"><label for="aanmelden-email">E-mailadres</label><input id="aanmelden-email" name="email" type="email" autocomplete="email" class="sm-input" placeholder="naam@voorbeeld.nl" required /></div>
-    <button class="sm-btn sm-btn--primary sm-btn--block" type="submit">Hou me op de hoogte</button>
-    <p class="sm-signup__fine">We gebruiken je e-mailadres alleen om je te laten weten wanneer Schoenmaatje opengaat.</p>
+    <button class="sm-btn sm-btn--primary sm-btn--block" type="submit">Account aanmaken</button>
+    <p class="sm-signup__fine">Al een account? <a href="/inloggen">Inloggen</a></p>
   </form>
 </div>

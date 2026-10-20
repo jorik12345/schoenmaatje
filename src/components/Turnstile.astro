@@ -1,0 +1,11 @@
+---
+// Cloudflare Turnstile tegen bots. Zonder PUBLIC_TURNSTILE_SITE_KEY (lokaal) wordt niets getoond;
+// zet captcha in Supabase dan ook niet aan. Het token gaat als `cf-turnstile-response` mee in het formulier.
+const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
+---
+{siteKey && (
+  <>
+    <div class="cf-turnstile" data-sitekey={siteKey} data-language="nl" data-theme="light" data-size="flexible"></div>
+    <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  </>
+)}

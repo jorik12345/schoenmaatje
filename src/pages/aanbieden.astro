@@ -1,0 +1,49 @@
+---
+export const prerender = false;
+
+import Base from '../layouts/Base.astro';
+import Alert from '../components/Alert.astro';
+import ListingForm from '../components/ListingForm.astro';
+import { createListing, getProfile } from '../lib/account';
+import { getFacets } from '../lib/listings';
+import { parseListingForm, parsePhotos, type FieldErrors, type ListingInput } from '../lib/listing-form';
+
+// De middleware stuurt niet-ingelogde bezoekers naar /inloggen.
+const { supabase, user } = Astro.locals;
+if (!supabase || !user) return Astro.redirect('/inloggen?naar=/aanbieden');
+
+const profile = await getProfile(supabase, user.id);
+let values: Partial<ListingInput> = { place: profile?.place ?? '' };
+let errors: FieldErrors = {};
+let error: string | null = null;
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const parsed = parseListingForm(form);
+  const photos = parsePhotos(form);
+  values = parsed.values;
+  errors = { ...parsed.errors, ...(photos.error ? { photos: photos.error } : {}) };
+  if (Object.keys(errors).length === 0) {
+    try {
+      const id = await createListing(supabase, user.id, parsed.values as ListingInput, photos.files);
+      return Astro.redirect(`/account?melding=geplaatst&id=${id}`);
+    } catch (e) {
+      console.error(e);
+      error = 'Je advertentie kon niet worden geplaatst. Probeer het opnieuw.';
+    }
+  } else {
+    error = 'Controleer de velden die rood zijn gemarkeerd.';
+  }
+}
+const brandSuggestions = (await getFacets()).brands.map(([b]) => b);
+---
+<Base title="Schoen aanbieden">
+  <div class="sm-wrap" style="padding-top:40px;padding-bottom:72px;max-width:820px">
+    <a class="sm-back" href="/account">← Mijn account</a>
+    <span class="sm-kicker" style="display:block">Schoen aanbieden</span>
+    <h1 class="sm-h1" style="margin:6px 0 8px">Welke schoen draag je niet?</h1>
+    <p class="sm-muted" style="margin-bottom:28px">Je advertentie is direct zichtbaar in het aanbod. Je naam en plaats staan erbij, je e-mailadres niet.</p>
+    {error && <div style="margin-bottom:24px"><Alert kind="error" title="Nog niet geplaatst">{error}</Alert></div>}
+    <ListingForm values={values} errors={errors} brandSuggestions={brandSuggestions} submitLabel="Advertentie plaatsen" />
+  </div>
+</Base>

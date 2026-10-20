@@ -1,0 +1,56 @@
+---
+export const prerender = false;
+
+import Base from '../../../layouts/Base.astro';
+import Alert from '../../../components/Alert.astro';
+import ListingForm from '../../../components/ListingForm.astro';
+import { getOwnListing, updateListing } from '../../../lib/account';
+import { getFacets } from '../../../lib/listings';
+import { parseListingForm, parsePhotos, type FieldErrors, type ListingInput } from '../../../lib/listing-form';
+
+const { supabase, user } = Astro.locals;
+if (!supabase || !user) return Astro.redirect(`/inloggen?naar=${encodeURIComponent(Astro.url.pathname)}`);
+
+const listing = await getOwnListing(supabase, user.id, Astro.params.id ?? '');
+if (!listing) Astro.response.status = 404;
+
+let values: Partial<ListingInput> = listing ?? {};
+let errors: FieldErrors = {};
+let removePhotoIds: string[] = [];
+let error: string | null = null;
+
+if (listing && Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const parsed = parseListingForm(form);
+  removePhotoIds = form.getAll('removePhoto').map(String).filter((id) => listing.photoRows.some((p) => p.id === id));
+  const photos = parsePhotos(form, listing.photoRows.length - removePhotoIds.length);
+  values = parsed.values;
+  errors = { ...parsed.errors, ...(photos.error ? { photos: photos.error } : {}) };
+  if (Object.keys(errors).length === 0) {
+    try {
+      await updateListing(supabase, user.id, listing, parsed.values as ListingInput, removePhotoIds, photos.files);
+      return Astro.redirect(`/account?melding=opgeslagen&id=${listing.id}`);
+    } catch (e) {
+      console.error(e);
+      error = 'Je wijzigingen konden niet worden opgeslagen. Probeer het opnieuw.';
+    }
+  } else {
+    error = 'Controleer de velden die rood zijn gemarkeerd.';
+  }
+}
+const brandSuggestions = listing ? (await getFacets()).brands.map(([b]) => b) : [];
+---
+<Base title="Advertentie bewerken">
+  <div class="sm-wrap" style="padding-top:40px;padding-bottom:72px;max-width:820px">
+    <a class="sm-back" href="/account">← Mijn account</a>
+    {listing ? (
+      <>
+        <h1 class="sm-h1" style="margin:0 0 28px">{listing.brand} {listing.model} bewerken</h1>
+        {error && <div style="margin-bottom:24px"><Alert kind="error" title="Nog niet opgeslagen">{error}</Alert></div>}
+        <ListingForm values={values} errors={errors} existingPhotos={listing.photoRows} removePhotoIds={removePhotoIds} brandSuggestions={brandSuggestions} submitLabel="Wijzigingen opslaan" />
+      </>
+    ) : (
+      <Alert kind="info" title="Advertentie niet gevonden">Deze advertentie bestaat niet of is niet van jou. <a href="/account">Naar je account</a></Alert>
+    )}
+  </div>
+</Base>

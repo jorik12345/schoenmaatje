@@ -8,8 +8,3 @@
 # Foto's uit Supabase Storage mogen via Netlify Image CDN verkleind worden.
 [images]
   remote_images = ["https://.*\\.supabase\\.co/storage/v1/object/public/listing-photos/.*"]
-
-[[headers]]
-  for = "/__forms.html"
-  [headers.values]
-    X-Robots-Tag = "noindex"

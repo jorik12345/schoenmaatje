@@ -1,0 +1,176 @@
+---
+import FieldError from './FieldError.astro';
+import { COLORS, formatSize, type ColorName } from '../data/shoes';
+import { FITS } from '../data/filters';
+import { CONDITIONS, FORM_SIZES, MAX_PHOTOS, type FieldErrors, type ListingInput } from '../lib/listing-form';
+import type { OwnPhoto } from '../lib/account';
+
+interface Props {
+  values: Partial<ListingInput>;
+  errors: FieldErrors;
+  existingPhotos?: OwnPhoto[];
+  removePhotoIds?: string[];
+  brandSuggestions?: string[];
+  submitLabel: string;
+}
+const { values, errors, existingPhotos = [], removePhotoIds = [], brandSuggestions = [], submitLabel } = Astro.props;
+const err = (k: keyof FieldErrors) => (errors[k] ? `fout-${k}` : undefined);
+---
+<form class="sm-form" method="POST" enctype="multipart/form-data" data-listing-form data-existing={existingPhotos.length} novalidate>
+  <fieldset class="sm-field" style="border:0;padding:0;margin:0" aria-describedby={err('side')}>
+    <legend class="sm-label" style="margin-bottom:6px">Welke schoen bied je aan?</legend>
+    <div class="sm-seg sm-seg--block" style="max-width:360px">
+      <label><input type="radio" name="side" value="links" checked={values.side === 'links'} required /><span>Links</span></label>
+      <label><input type="radio" name="side" value="rechts" checked={values.side === 'rechts'} /><span>Rechts</span></label>
+    </div>
+    <FieldError id="fout-side" error={errors.side} />
+  </fieldset>
+
+  <div class="sm-form__row">
+    <div class:list={['sm-field', errors.brand && 'sm-field--error']}>
+      <label for="f-brand">Merk</label>
+      <input id="f-brand" name="brand" class="sm-input" value={values.brand} list="merken" maxlength="60" required aria-describedby={err('brand')} autocomplete="off" />
+      <datalist id="merken">{brandSuggestions.map((b) => <option value={b} />)}</datalist>
+      <FieldError id="fout-brand" error={errors.brand} />
+    </div>
+    <div class:list={['sm-field', errors.model && 'sm-field--error']}>
+      <label for="f-model">Model</label>
+      <input id="f-model" name="model" class="sm-input" value={values.model} maxlength="80" required placeholder="Bijv. Air Max 90" aria-describedby={err('model')} />
+      <FieldError id="fout-model" error={errors.model} />
+    </div>
+  </div>
+
+  <div class="sm-form__row sm-form__row--3">
+    <div class:list={['sm-field', errors.size && 'sm-field--error']}>
+      <label for="f-size">Maat (EU)</label>
+      <select id="f-size" name="size" class="sm-select" required aria-describedby={err('size')}>
+        <option value="">Kies</option>
+        {FORM_SIZES.map((s) => <option value={s} selected={values.size === s}>{formatSize(s)}</option>)}
+      </select>
+      <FieldError id="fout-size" error={errors.size} />
+    </div>
+    <div class:list={['sm-field', errors.fit && 'sm-field--error']}>
+      <label for="f-fit">Pasvorm</label>
+      <select id="f-fit" name="fit" class="sm-select" required aria-describedby={err('fit')}>
+        <option value="">Kies</option>
+        {FITS.map((f) => <option selected={values.fit === f}>{f}</option>)}
+      </select>
+      <FieldError id="fout-fit" error={errors.fit} />
+    </div>
+    <div class:list={['sm-field', errors.color && 'sm-field--error']}>
+      <label for="f-color">Kleur</label>
+      <select id="f-color" name="color" class="sm-select" required aria-describedby={err('color')}>
+        <option value="">Kies</option>
+        {(Object.keys(COLORS) as ColorName[]).map((c) => <option selected={values.color === c}>{c}</option>)}
+      </select>
+      <FieldError id="fout-color" error={errors.color} />
+    </div>
+  </div>
+
+  <div class="sm-form__row">
+    <div class:list={['sm-field', errors.condition && 'sm-field--error']}>
+      <label for="f-condition">Staat</label>
+      <select id="f-condition" name="condition" class="sm-select" required aria-describedby={err('condition')}>
+        <option value="">Kies</option>
+        {CONDITIONS.map((c) => <option selected={values.condition === c}>{c}</option>)}
+      </select>
+      <FieldError id="fout-condition" error={errors.condition} />
+    </div>
+    <div class:list={['sm-field', errors.place && 'sm-field--error']}>
+      <label for="f-place">Plaats</label>
+      <input id="f-place" name="place" class="sm-input" value={values.place} maxlength="60" required autocomplete="address-level2" aria-describedby={err('place')} />
+      <FieldError id="fout-place" error={errors.place} />
+    </div>
+  </div>
+
+  <div class:list={['sm-field', errors.description && 'sm-field--error']}>
+    <label for="f-description">Omschrijving <span class="sm-muted" style="font-weight:400">(optioneel)</span></label>
+    <textarea id="f-description" name="description" class="sm-textarea" maxlength="1000" aria-describedby={errors.description ? 'fout-description' : 'hint-description'}>{values.description ?? ''}</textarea>
+    <span class="sm-hint" id="hint-description">Bijvoorbeeld hoe vaak hij gedragen is, of hij groot of klein valt, en of je hem kunt opsturen.</span>
+    <FieldError id="fout-description" error={errors.description} />
+  </div>
+
+  <fieldset class:list={['sm-field', errors.photos && 'sm-field--error']} style="border:0;padding:0;margin:0">
+    <legend class="sm-label" style="margin-bottom:6px">Foto's <span class="sm-muted" style="font-weight:400">(optioneel, maximaal {MAX_PHOTOS})</span></legend>
+    {existingPhotos.length > 0 && (
+      <div class="sm-photo-grid">
+        {existingPhotos.map((p, i) => (
+          <figure>
+            <img src={p.url} alt={`Foto ${i + 1}`} />
+            <label><input type="checkbox" name="removePhoto" value={p.id} checked={removePhotoIds.includes(p.id)} data-remove-photo /> Verwijderen</label>
+          </figure>
+        ))}
+      </div>
+    )}
+    <label class="sm-file">
+      <input type="file" name="photos" accept="image/jpeg,image/png,image/webp" multiple data-photo-input aria-describedby="hint-photos" />
+      <b>Kies foto's</b>
+      <span class="sm-hint" id="hint-photos">JPG, PNG of WebP. Foto's met de schoen goed in beeld werken het best.</span>
+    </label>
+    <div class="sm-photo-grid" data-photo-preview></div>
+    <span class="sm-hint sm-hint--error" data-photo-error hidden></span>
+    <FieldError id="fout-photos" error={errors.photos} />
+  </fieldset>
+
+  <div><button class="sm-btn sm-btn--primary" type="submit" data-submit>{submitLabel}</button></div>
+</form>
+
+<script>
+  // Foto's in de browser verkleinen (max. 1600px, JPEG) zodat uploaden snel gaat en binnen de limieten blijft.
+  const MAX = 5;
+  const SIDE = 1600;
+  const form = document.querySelector<HTMLFormElement>('[data-listing-form]');
+  const input = form?.querySelector<HTMLInputElement>('[data-photo-input]');
+  const preview = form?.querySelector<HTMLElement>('[data-photo-preview]');
+  const errorEl = form?.querySelector<HTMLElement>('[data-photo-error]');
+  const submit = form?.querySelector<HTMLButtonElement>('[data-submit]');
+
+  async function shrink(file: File): Promise<File> {
+    if (!file.type.startsWith('image/')) return file;
+    const bitmap = await createImageBitmap(file).catch(() => null);
+    if (!bitmap) return file;
+    const scale = Math.min(1, SIDE / Math.max(bitmap.width, bitmap.height));
+    if (scale === 1 && file.size < 1_000_000) return file;
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    canvas.getContext('2d')?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, 'image/jpeg', 0.85));
+    return blob ? new File([blob], file.name.replace(/\.\w+$/, '') + '.jpg', { type: 'image/jpeg' }) : file;
+  }
+
+  function remaining() {
+    const existing = Number(form?.dataset.existing ?? 0);
+    const removed = form?.querySelectorAll('[data-remove-photo]:checked').length ?? 0;
+    return MAX - (existing - removed);
+  }
+
+  input?.addEventListener('change', async () => {
+    if (!input.files || !preview || !errorEl || !submit) return;
+    errorEl.hidden = true;
+    let files = [...input.files];
+    if (files.length > remaining()) {
+      errorEl.textContent = `Je kunt nog ${Math.max(0, remaining())} foto('s) toevoegen. De eerste ${Math.max(0, remaining())} zijn gekozen.`;
+      errorEl.hidden = false;
+      files = files.slice(0, Math.max(0, remaining()));
+    }
+    submit.disabled = true;
+    const shrunk = await Promise.all(files.map(shrink));
+    const dt = new DataTransfer();
+    shrunk.forEach((f) => dt.items.add(f));
+    input.files = dt.files;
+    preview.replaceChildren(...shrunk.map((f) => {
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(f);
+      img.alt = '';
+      const fig = document.createElement('figure');
+      fig.append(img);
+      return fig;
+    }));
+    submit.disabled = false;
+  });
+
+  form?.addEventListener('submit', () => {
+    if (submit) { submit.disabled = true; submit.textContent = 'Bezig met opslaan…'; }
+  });
+</script>
