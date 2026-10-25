@@ -46,8 +46,8 @@ const [mainPhoto, ...morePhotos] = shoe.photos ?? [];
         {shoe.ownerName && <><dt>Aangeboden door</dt><dd>{shoe.ownerName}</dd></>}
       </dl>
       <div class="sm-detail__actions">
-        <a class="sm-btn sm-btn--primary sm-btn--block" href="/#aanmelden">Stuur een bericht</a>
-        <p class="sm-hint">Berichten sturen kan zodra accounts er zijn. Laat je e-mailadres achter, dan hoor je het als eerste.</p>
+        <a class="sm-btn sm-btn--primary sm-btn--block" href="/registreren">Maak een account aan</a>
+        <p class="sm-hint">Berichten sturen naar de aanbieder komt binnenkort. Met een account kun je nu al zelf schoenen aanbieden.</p>
         <a class="sm-report" href={`/contact?onderwerp=melding&advertentie=${encodeURIComponent(shoe.id)}`}>Klopt er iets niet? Meld deze advertentie</a>
       </div>
     </div>

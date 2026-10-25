@@ -45,7 +45,7 @@ cacheBriefly(Astro);
         )}
         {results.length > 0
           ? <div class="sm-grid sm-grid--3">{results.map((shoe) => <ShoeCard shoe={shoe} />)}</div>
-          : <div class="sm-notice"><b>Geen schoenen met deze filters.</b>Haal een filter weg, of laat je e-mailadres achter op de <a href="/#aanmelden">homepage</a>, dan hoor je het als er een schoen in jouw maat bij komt.</div>}
+          : <div class="sm-notice"><b>Geen schoenen met deze filters.</b>Haal een filter weg, of kom later terug: er komen steeds schoenen bij.</div>}
         {results.length < total && (
           <div style="display:flex;justify-content:center;align-items:center;gap:16px;margin-top:40px">
             <span class="sm-muted" style="font-size:15px">{results.length} van {total}</span>
@@ -53,7 +53,7 @@ cacheBriefly(Astro);
           </div>
         )}
         {results.length > 0 && (
-          <div class="sm-notice" style="margin-top:40px"><b>Niet gevonden wat je zoekt?</b>Laat je e-mailadres achter op de <a href="/#aanmelden">homepage</a>. We sturen je een bericht zodra je een zoekopdracht kunt opslaan.</div>
+          <div class="sm-notice" style="margin-top:40px"><b>Heb je zelf een schoen over?</b><a href="/aanbieden">Bied hem aan</a>, dan vindt iemand anders misschien precies wat die zoekt.</div>
         )}
       </div>
     </div>

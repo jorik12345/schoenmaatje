@@ -1,0 +1,87 @@
+---
+export const prerender = false;
+
+import Base from '../layouts/Base.astro';
+import Alert from '../components/Alert.astro';
+import Turnstile from '../components/Turnstile.astro';
+import { authErrorMessage, confirmUrl, safeNext } from '../lib/auth';
+
+const { supabase, user } = Astro.locals;
+const next = safeNext(Astro.url.searchParams.get('naar'));
+if (user) return Astro.redirect(next);
+
+let error: string | null = Astro.url.searchParams.get('fout') === 'link' ? 'Deze link is verlopen of al gebruikt. Vraag een nieuwe aan.' : null;
+let sentTo: string | null = null;
+let email = '';
+let usePassword = false;
+
+if (Astro.request.method === 'POST' && supabase) {
+  const form = await Astro.request.formData();
+  email = String(form.get('email') ?? '').trim().toLowerCase();
+  const password = String(form.get('password') ?? '');
+  const captchaToken = String(form.get('cf-turnstile-response') ?? '') || undefined;
+  usePassword = form.get('mode') === 'password';
+
+  if (!/^\S+@\S+\.\S+$/.test(email)) {
+    error = 'Vul een geldig e-mailadres in.';
+  } else if (usePassword) {
+    const { error: e } = await supabase.auth.signInWithPassword({ email, password, options: { captchaToken } });
+    if (!e) return Astro.redirect(next);
+    error = authErrorMessage(e);
+  } else {
+    // Bestaat het account nog niet, dan maakt Supabase het aan: inloggen en registreren in één stap.
+    const { error: e } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: confirmUrl(Astro.url.origin, next), shouldCreateUser: true, captchaToken },
+    });
+    if (e) error = authErrorMessage(e);
+    else sentTo = email;
+  }
+}
+---
+<Base title="Inloggen">
+  <div class="sm-auth">
+    <div>
+      <span class="sm-kicker">Account</span>
+      <h1 class="sm-h1" style="margin-top:6px">Inloggen</h1>
+    </div>
+    {!supabase && <Alert kind="info" title="Accounts zijn nog niet actief">Inloggen werkt zodra Supabase is ingesteld (zie docs/supabase.md).</Alert>}
+    {sentTo ? (
+      <Alert kind="success" title="Check je mail">
+        We hebben een inloglink gestuurd naar <b style="display:inline">{sentTo}</b>. Open de link op dit apparaat. Niets ontvangen? Kijk in je spammap of probeer het over een minuut opnieuw.
+      </Alert>
+    ) : (
+      <>
+        {error && <Alert kind="error" title="Dat lukte niet">{error}</Alert>}
+        <form class="sm-auth__card" method="POST">
+          <input type="hidden" name="mode" value="link" />
+          <div class="sm-field">
+            <label for="l-email">E-mailadres</label>
+            <input id="l-email" name="email" type="email" class="sm-input" autocomplete="email" required value={email} />
+            <span class="sm-hint">We sturen je een link waarmee je direct bent ingelogd. Nog geen account? Dan maken we er een voor je aan.</span>
+          </div>
+          <Turnstile />
+          <button class="sm-btn sm-btn--primary sm-btn--block" type="submit">Stuur inloglink</button>
+        </form>
+        <details class="sm-more" open={usePassword}>
+          <summary>Liever met wachtwoord</summary>
+          <form class="sm-auth__card" method="POST">
+            <input type="hidden" name="mode" value="password" />
+            <div class="sm-field">
+              <label for="p-email">E-mailadres</label>
+              <input id="p-email" name="email" type="email" class="sm-input" autocomplete="email" required value={email} />
+            </div>
+            <div class="sm-field">
+              <label for="p-password">Wachtwoord</label>
+              <input id="p-password" name="password" type="password" class="sm-input" autocomplete="current-password" required />
+              <a class="sm-hint" href="/wachtwoord-vergeten">Wachtwoord vergeten?</a>
+            </div>
+            <Turnstile />
+            <button class="sm-btn sm-btn--secondary sm-btn--block" type="submit">Inloggen</button>
+          </form>
+        </details>
+      </>
+    )}
+    <p class="sm-auth__switch">Nieuw hier? <a href={`/registreren${next !== '/account' ? `?naar=${encodeURIComponent(next)}` : ''}`}>Maak een account aan</a></p>
+  </div>
+</Base>

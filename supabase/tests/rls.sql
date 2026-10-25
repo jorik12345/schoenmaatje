@@ -94,3 +94,24 @@ select pg_temp.expect_denied($$select * from reports$$, 'gebruikers kunnen meldi
 with u as (update listings set status = 'gereserveerd' where model = 'Dunk' returning 1) select pg_temp.ok((select count(*) from u) = 1, 'B kan status van eigen advertentie wijzigen');
 with u as (update profiles set place = 'Delft' where id = '00000000-0000-4000-8000-00000000000b' returning 1) select pg_temp.ok((select count(*) from u) = 1, 'B kan eigen plaats wijzigen');
 commit;
+
+-- Account verwijderen ------------------------------------------------------
+begin; set local role anon;
+select pg_temp.expect_denied($$select public.delete_own_account()$$, 'anon kan geen account verwijderen');
+commit;
+begin; set local role authenticated; set local request.jwt.claim.sub = '00000000-0000-4000-8000-00000000000c';
+select public.delete_own_account();
+commit;
+select pg_temp.ok(
+  not exists (select 1 from auth.users where id = '00000000-0000-4000-8000-00000000000c')
+  and not exists (select 1 from public.profiles where id = '00000000-0000-4000-8000-00000000000c')
+  and exists (select 1 from auth.users where id = '00000000-0000-4000-8000-00000000000b'),
+  'C verwijdert alleen het eigen account, profiel gaat mee');
+begin; set local role authenticated; set local request.jwt.claim.sub = '00000000-0000-4000-8000-00000000000b';
+select public.delete_own_account();
+commit;
+select pg_temp.ok(
+  not exists (select 1 from public.listings where owner_id = '00000000-0000-4000-8000-00000000000b')
+  and not exists (select 1 from public.conversations where starter_id = '00000000-0000-4000-8000-00000000000b')
+  and not exists (select 1 from public.saved_searches where user_id = '00000000-0000-4000-8000-00000000000b'),
+  'advertenties, gesprekken en zoekopdrachten van B zijn mee verwijderd');

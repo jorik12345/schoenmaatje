@@ -3,6 +3,9 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 const url = import.meta.env.PUBLIC_SUPABASE_URL as string | undefined;
 const key = import.meta.env.PUBLIC_SUPABASE_PUBLISHABLE_KEY as string | undefined;
 
+/** Voor de per-request client met inlogsessie (src/lib/auth.ts). */
+export const supabaseConfig = url && key ? { url, key } : null;
+
 /** Null als Supabase (nog) niet is ingesteld; de site valt dan terug op voorbeelddata. */
 export const supabase: SupabaseClient | null = url && key ? createClient(url, key, { auth: { persistSession: false } }) : null;
 

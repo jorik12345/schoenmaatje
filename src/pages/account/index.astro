@@ -1,0 +1,129 @@
+---
+export const prerender = false;
+
+import Base from '../../layouts/Base.astro';
+import Alert from '../../components/Alert.astro';
+import FieldError from '../../components/FieldError.astro';
+import OwnListingItem from '../../components/OwnListingItem.astro';
+import { deleteAccount, deleteListing, getOwnListing, getOwnListings, getProfile, setListingStatus, updateProfile } from '../../lib/account';
+import { parseStatus } from '../../lib/listing-form';
+
+const { supabase, user } = Astro.locals;
+if (!supabase || !user) return Astro.redirect('/inloggen?naar=/account');
+
+const MESSAGES: Record<string, string> = {
+  geplaatst: 'Je advertentie staat online.',
+  opgeslagen: 'Je wijzigingen zijn opgeslagen.',
+  status: 'De status is aangepast.',
+  verwijderd: 'De advertentie is verwijderd.',
+  wachtwoord: 'Je nieuwe wachtwoord is ingesteld.',
+};
+const message = MESSAGES[Astro.url.searchParams.get('melding') ?? ''];
+const placedId = Astro.url.searchParams.get('id');
+const profileErrors: Record<string, string> = {};
+let error: string | null = null;
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const action = form.get('_action');
+  try {
+    if (action === 'profile') {
+      const display_name = String(form.get('display_name') ?? '').trim();
+      const place = String(form.get('place') ?? '').trim();
+      if (!display_name || display_name.length > 40) profileErrors.display_name = 'Vul een naam in van maximaal 40 tekens.';
+      if (place.length > 60) profileErrors.place = 'De plaats mag maximaal 60 tekens zijn.';
+      if (!Object.keys(profileErrors).length) {
+        await updateProfile(supabase, user.id, { display_name, place: place || null });
+        return Astro.redirect('/account?melding=opgeslagen');
+      }
+    } else if (action === 'status' || action === 'delete-listing') {
+      const listing = await getOwnListing(supabase, user.id, String(form.get('id') ?? ''));
+      if (!listing) throw new Error('Advertentie niet gevonden');
+      if (action === 'status') {
+        const status = parseStatus(form.get('status'));
+        if (status) await setListingStatus(supabase, listing.id, status);
+        return Astro.redirect('/account?melding=status');
+      }
+      await deleteListing(supabase, listing);
+      return Astro.redirect('/account?melding=verwijderd');
+    } else if (action === 'delete-account') {
+      if (form.get('confirm') !== 'VERWIJDEREN') {
+        error = 'Typ VERWIJDEREN om je account te verwijderen.';
+      } else {
+        await deleteAccount(supabase, user.id);
+        return Astro.redirect('/account-verwijderd');
+      }
+    }
+  } catch (e) {
+    console.error(e);
+    error = 'Dat lukte niet. Probeer het opnieuw.';
+  }
+}
+
+const [profile, listings] = await Promise.all([getProfile(supabase, user.id), getOwnListings(supabase, user.id)]);
+const hasDefaultName = profile?.display_name === 'Schoenmaatje';
+---
+<Base title="Mijn account">
+  <div class="sm-wrap" style="padding-top:40px;padding-bottom:72px">
+    <span class="sm-kicker">Mijn account</span>
+    <h1 class="sm-h1" style="margin:6px 0 28px">{hasDefaultName ? 'Welkom' : `Hoi ${profile?.display_name}`}</h1>
+    <div style="display:grid;gap:16px;margin-bottom:28px">
+      {message && <Alert kind="success" title={message}>{placedId && <a href={`/schoen/${placedId}`}>Bekijk je advertentie</a>}</Alert>}
+      {error && <Alert kind="error" title="Dat lukte niet">{error}</Alert>}
+      {hasDefaultName && <Alert kind="info" title="Kies een naam">Anderen zien die bij je advertenties. Je kunt hem hiernaast instellen.</Alert>}
+    </div>
+    <div class="sm-account">
+      <section>
+        <div class="sm-section__head" style="margin-bottom:16px">
+          <h2 class="sm-h2">Mijn advertenties</h2>
+          <a class="sm-btn sm-btn--primary sm-btn--sm" href="/aanbieden">Schoen aanbieden</a>
+        </div>
+        {listings.length > 0
+          ? <div class="sm-own">{listings.map((l) => <OwnListingItem listing={l} />)}</div>
+          : <div class="sm-notice"><b>Je hebt nog geen schoenen aangeboden.</b>Bied de schoen aan die je niet draagt; dat duurt een paar minuten.</div>}
+      </section>
+      <aside style="display:grid;gap:20px">
+        <form class="sm-panel" method="POST" novalidate>
+          <input type="hidden" name="_action" value="profile" />
+          <h2 class="sm-h2" style="font-size:20px;line-height:26px">Profiel</h2>
+          <div class:list={['sm-field', profileErrors.display_name && 'sm-field--error']}>
+            <label for="a-name">Naam</label>
+            <input id="a-name" name="display_name" class="sm-input" maxlength="40" required value={hasDefaultName ? '' : profile?.display_name} />
+            <FieldError id="a-name-err" error={profileErrors.display_name} />
+          </div>
+          <div class:list={['sm-field', profileErrors.place && 'sm-field--error']}>
+            <label for="a-place">Plaats</label>
+            <input id="a-place" name="place" class="sm-input" maxlength="60" autocomplete="address-level2" value={profile?.place ?? ''} />
+            <span class="sm-hint">Wordt standaard ingevuld bij nieuwe advertenties.</span>
+            <FieldError id="a-place-err" error={profileErrors.place} />
+          </div>
+          <div><button class="sm-btn sm-btn--secondary sm-btn--sm" type="submit">Opslaan</button></div>
+        </form>
+        <div class="sm-panel">
+          <h2 class="sm-h2" style="font-size:20px;line-height:26px">Inloggen</h2>
+          <p class="sm-hint" style="margin:0">Ingelogd als {user.email}</p>
+          <a class="sm-hint" href="/account/wachtwoord">Wachtwoord instellen of wijzigen</a>
+          <form method="POST" action="/uitloggen"><button class="sm-btn sm-btn--secondary sm-btn--sm" type="submit">Uitloggen</button></form>
+        </div>
+        <details class="sm-panel sm-more">
+          <summary>Account verwijderen</summary>
+          <form method="POST" style="display:grid;gap:12px">
+            <input type="hidden" name="_action" value="delete-account" />
+            <p class="sm-hint" style="margin:0">Dit verwijdert je account, je advertenties, foto's en berichten. Dit kan niet ongedaan worden gemaakt.</p>
+            <div class="sm-field">
+              <label for="a-confirm">Typ VERWIJDEREN om te bevestigen</label>
+              <input id="a-confirm" name="confirm" class="sm-input" autocomplete="off" />
+            </div>
+            <div><button class="sm-btn sm-btn--danger sm-btn--sm" type="submit">Account verwijderen</button></div>
+          </form>
+        </details>
+      </aside>
+    </div>
+  </div>
+</Base>
+<script>
+  // Bevestiging vóór verwijderen (zonder JavaScript gaat het direct, met de knop zelf als bevestiging).
+  document.querySelectorAll<HTMLFormElement>('form[data-confirm]').forEach((f) => {
+    f.addEventListener('submit', (e) => { if (!confirm(f.dataset.confirm)) e.preventDefault(); });
+  });
+</script>
