@@ -1,6 +1,6 @@
 # Schoenmaatje
 
-Ruilplatform (Nederlandstalig) voor mensen met één voet of één been om losse schoenen te ruilen.
+Platform (Nederlandstalig) voor mensen met één voet of één been om losse schoenen te kopen, verkopen, weggeven en ruilen, en om "maatjes" met dezelfde maat te volgen. Betalen gebeurt buiten het platform.
 
 ## Stack
 - **Astro 7** met `@astrojs/netlify`. Pagina's zijn statisch, behalve als ze `export const prerender = false` hebben (dan Netlify Function), zoals `/aanbod`.
@@ -24,8 +24,10 @@ Ruilplatform (Nederlandstalig) voor mensen met één voet of één been om losse
 1. **Fase 1 (klaar):** Astro + Netlify, design system, Home, Aanbod (voorbeelddata), Zo werkt het, Contact.
 2. **Fase 2 (klaar):** Supabase (EU, Frankfurt): tabellen `profiles`, `listings`, `listing_photos`, `messages`, `saved_searches`, `reports` met Row Level Security. `/aanbod` leest uit `listings` in plaats van `src/data/shoes.ts`. Detailpagina per schoen.
 3. **Fase 3 (klaar):** Supabase Auth (magic link + wachtwoord, Cloudflare Turnstile), sessie via `@supabase/ssr` in Astro-middleware, "Schoen aanbieden" met foto-upload (Supabase Storage, Netlify Image CDN), accountpagina.
-4. **Fase 4:** berichten per advertentie, matchmails (Resend of Brevo als SMTP), opgeslagen zoekopdrachten.
-5. **Livegang:** privacyverklaring en voorwaarden, moderatie, Supabase Pro, eigen domein, toegankelijkheids- en Lighthouse-check.
+4. **Fase 4a (klaar):** verkopen naast ruilen (`offer`: verkoop/gratis/ruil, `price_cents`), status verkocht, particulier/handelaar, openbaar profiel `/maatje/[id]`, filters op soort en prijs.
+5. **Fase 4b:** volgen van maatjes en een overzicht van hun nieuwe schoenen; opt-in maat op het profiel (uitdrukkelijke toestemming, AVG art. 9) en "mensen met jouw maat".
+6. **Fase 5:** berichten per advertentie, mails voor nieuwe schoenen van wie je volgt en opgeslagen zoekopdrachten (Resend of Brevo als SMTP).
+7. **Livegang:** privacyverklaring en voorwaarden, moderatie, DAC7 en particulier/handelaar laten checken, Supabase Pro, eigen domein, toegankelijkheids- en Lighthouse-check.
 
 ## Controleren
 `npm run build` moet slagen. Bekijk wijzigingen met `npm run dev`. Bij wijzigingen aan migraties of RLS: nieuwe migratie toevoegen (nooit een bestaande aanpassen), test toevoegen in `supabase/tests/rls.sql` en de tests draaien zoals in `docs/supabase.md`. Supabase geeft nieuwe tabellen geen automatische rechten meer: een nieuwe tabel heeft altijd expliciete `grant`s nodig voor `anon`/`authenticated`/`service_role`, naast RLS.

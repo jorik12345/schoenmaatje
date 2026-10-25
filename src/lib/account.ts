@@ -1,10 +1,10 @@
 // Acties namens de ingelogde gebruiker. Altijd met de sessie-client (locals.supabase), zodat RLS geldt.
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Shoe, Status } from '../data/shoes';
+import type { SellerType, Shoe, Status } from '../data/shoes';
 import type { ListingInput } from './listing-form';
 import { PHOTO_BUCKET, photoUrl } from './supabase';
 
-export interface Profile { display_name: string; place: string | null }
+export interface Profile { display_name: string; place: string | null; seller_type: SellerType }
 export interface OwnPhoto { id: string; path: string; url: string }
 export type OwnListing = Shoe & { status: Status; photoRows: OwnPhoto[] };
 
@@ -13,7 +13,7 @@ function fail(what: string, error: { message: string }): never {
 }
 
 export async function getProfile(sb: SupabaseClient, userId: string): Promise<Profile | null> {
-  const { data, error } = await sb.from('profiles').select('display_name, place').eq('id', userId).maybeSingle();
+  const { data, error } = await sb.from('profiles').select('display_name, place, seller_type').eq('id', userId).maybeSingle();
   if (error) fail('Profiel ophalen', error);
   return data;
 }
@@ -23,11 +23,12 @@ export async function updateProfile(sb: SupabaseClient, userId: string, profile:
   if (error) fail('Profiel opslaan', error);
 }
 
-const OWN_COLUMNS = 'id, side, brand, model, size, fit, color, condition, place, description, status, created_at, listing_photos(id, path, position)';
+const OWN_COLUMNS = 'id, side, brand, model, size, fit, color, condition, place, description, status, offer, price_cents, created_at, listing_photos(id, path, position)';
 
 interface OwnRow {
   id: string; side: Shoe['side']; brand: string; model: string; size: number | string; fit: Shoe['fit'];
   color: Shoe['color']; condition: Shoe['condition']; place: string; description: string | null; status: Status;
+  offer: Shoe['offer']; price_cents: number | null;
   created_at: string; listing_photos: { id: string; path: string; position: number }[];
 }
 
@@ -36,6 +37,7 @@ function toOwn(r: OwnRow): OwnListing {
   return {
     id: r.id, side: r.side, brand: r.brand, model: r.model, size: Number(r.size), fit: r.fit, color: r.color,
     condition: r.condition, place: r.place, description: r.description, status: r.status, addedAt: r.created_at,
+    offer: r.offer, priceCents: r.price_cents,
     photos: photoRows.map((p) => p.url), photoRows,
   };
 }

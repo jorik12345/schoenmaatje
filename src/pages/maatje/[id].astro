@@ -1,0 +1,49 @@
+---
+export const prerender = false;
+
+import Base from '../../layouts/Base.astro';
+import ShoeCard from '../../components/ShoeCard.astro';
+import { formatSize } from '../../data/shoes';
+import { getPublicProfile } from '../../lib/listings';
+import { cacheBriefly } from '../../lib/cache';
+
+const profile = await getPublicProfile(Astro.params.id ?? '');
+if (profile) cacheBriefly(Astro);
+else Astro.response.status = 404;
+const since = profile ? new Date(profile.createdAt).toLocaleDateString('nl-NL', { month: 'long', year: 'numeric' }) : '';
+---
+{profile ? (
+  <Base title={profile.displayName} active="aanbod" description={`Schoenen van ${profile.displayName} op Schoenmaatje.`}>
+    <div class="sm-wrap" style="padding-top:40px;padding-bottom:72px">
+      <div class="sm-profile-head">
+        <span class="sm-avatar sm-avatar--lg" aria-hidden="true">{profile.displayName.slice(0, 1).toUpperCase()}</span>
+        <div>
+          <span class="sm-kicker">Maatje</span>
+          <h1 class="sm-h1" style="margin-top:4px">{profile.displayName}</h1>
+          <p class="sm-muted" style="margin-top:4px">
+            {[profile.place, profile.sellerType === 'handelaar' ? 'Handelaar' : 'Particulier', `lid sinds ${since}`].filter(Boolean).join(' · ')}
+          </p>
+          {profile.offeredSizes.length > 0 && (
+            <div class="sm-sizes-offered" aria-label="Biedt nu aan in">
+              {profile.offeredSizes.map((o) => <span class:list={['sm-side', o.side === 'links' ? 'sm-side--left' : 'sm-side--right']}>{o.side === 'links' ? 'Links' : 'Rechts'} {formatSize(o.size)}</span>)}
+            </div>
+          )}
+        </div>
+      </div>
+      <h2 class="sm-h2" style="margin-bottom:var(--space-6)">
+        {profile.listings.length === 0 ? 'Geen schoenen online' : `${profile.listings.length} ${profile.listings.length === 1 ? 'schoen' : 'schoenen'} online`}
+      </h2>
+      {profile.listings.length > 0
+        ? <div class="sm-grid sm-grid--3">{profile.listings.map((s) => <ShoeCard shoe={s} />)}</div>
+        : <div class="sm-notice"><b>{profile.displayName} biedt op dit moment niets aan.</b>Kijk later nog eens, of bekijk het <a href="/aanbod">hele aanbod</a>.</div>}
+    </div>
+  </Base>
+) : (
+  <Base title="Profiel niet gevonden">
+    <div class="sm-wrap" style="padding-top:72px;padding-bottom:96px;max-width:720px">
+      <span class="sm-kicker">Niet gevonden</span>
+      <h1 class="sm-hero__title" style="font-size:56px;margin:12px 0 18px">Dit profiel bestaat niet (meer).</h1>
+      <div class="sm-hero__cta"><a class="sm-btn sm-btn--primary" href="/aanbod">Bekijk het aanbod</a></div>
+    </div>
+  </Base>
+)}

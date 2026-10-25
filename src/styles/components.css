@@ -330,3 +330,20 @@ details.sm-more[open] > summary { margin-bottom: 16px; }
   .sm-own__thumb { width: 72px; }
   .sm-own__actions { grid-column: 1 / -1; justify-items: start; }
 }
+
+/* Prijs */
+.sm-card__top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.sm-price { font: 700 17px/1 var(--font-display); white-space: nowrap; }
+.sm-price--free { font: 700 13px/1 var(--font-sans); text-transform: uppercase; letter-spacing: .05em; }
+.sm-detail__price { font: 700 36px/1 var(--font-display); letter-spacing: -.02em; margin: 0 0 16px; }
+.sm-detail__price small { display: block; margin-top: 6px; font: 400 15px/20px var(--font-sans); color: var(--ink-muted); letter-spacing: 0; }
+
+/* Verkoper */
+.sm-seller { display: flex; align-items: center; gap: 14px; padding: 16px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); text-decoration: none; color: inherit; }
+.sm-seller:hover { border-color: var(--ink); }
+.sm-avatar { flex: none; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: var(--ink); color: var(--paper); font: 700 20px/1 var(--font-display); }
+.sm-avatar--lg { width: 88px; height: 88px; font-size: 36px; }
+.sm-seller__name { font: 600 18px/22px var(--font-display); }
+.sm-seller__meta { font-size: 14px; color: var(--ink-muted); }
+.sm-profile-head { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; margin-bottom: 32px; }
+.sm-sizes-offered { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }

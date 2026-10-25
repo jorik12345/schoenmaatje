@@ -1,6 +1,6 @@
 ---
-import { COLORS, swatchBackground, type ColorName } from '../data/shoes';
-import { FITS, SIZES, type Filters } from '../data/filters';
+import { COLORS, OFFER_LABELS, formatEuro, swatchBackground, type ColorName } from '../data/shoes';
+import { FITS, MAX_PRICES, OFFERS, SIZES, type Filters } from '../data/filters';
 import type { Facets } from '../lib/listings';
 interface Props { filters: Filters; facets: Facets }
 const { filters, facets } = Astro.props;
@@ -18,6 +18,20 @@ const legendStyle = 'padding:4px 0 0;float:left;width:100%';
       <label><input type="radio" name="zijde" value="links" checked={filters.zijde === 'links'} /><span>Links</span></label>
       <label><input type="radio" name="zijde" value="rechts" checked={filters.zijde === 'rechts'} /><span>Rechts</span></label>
     </div>
+  </fieldset>
+  <fieldset class="sm-filters__group" style={groupStyle}>
+    <legend class="sm-filters__head" style={legendStyle}><span class="sm-filters__title">Soort</span></legend>
+    {OFFERS.map((o) => (
+      <label class="sm-check"><input type="checkbox" name="soort" value={o} checked={filters.soort.includes(o)} />{OFFER_LABELS[o]} <span class="sm-count">{facets.offers[o] ?? 0}</span></label>
+    ))}
+  </fieldset>
+  <fieldset class="sm-filters__group" style={groupStyle}>
+    <legend class="sm-filters__head" style={legendStyle}><span class="sm-filters__title">Maximale prijs</span></legend>
+    <label class="sm-check"><input type="radio" name="maxprijs" value="" checked={!filters.maxprijs} />Geen maximum</label>
+    {MAX_PRICES.map((p) => (
+      <label class="sm-check"><input type="radio" name="maxprijs" value={p} checked={filters.maxprijs === p} />Tot {formatEuro(p * 100)}</label>
+    ))}
+    <span class="sm-hint">Gratis en ruilen tellen altijd mee.</span>
   </fieldset>
   <fieldset class="sm-filters__group" style={groupStyle}>
     <legend class="sm-filters__head" style={legendStyle}><span class="sm-filters__title">Pasvorm</span></legend>

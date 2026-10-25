@@ -4,7 +4,7 @@ export const prerender = false;
 import Base from '../layouts/Base.astro';
 import FilterPanel from '../components/FilterPanel.astro';
 import ShoeCard from '../components/ShoeCard.astro';
-import { activeChips, parseFilters, parsePage } from '../data/filters';
+import { SORTS, activeChips, parseFilters, parsePage } from '../data/filters';
 import { getFacets, searchListings } from '../lib/listings';
 import { cacheBriefly } from '../lib/cache';
 
@@ -20,10 +20,10 @@ const withParam = (key: string, value: string) => {
 };
 cacheBriefly(Astro);
 ---
-<Base title="Aanbod" active="aanbod" description="Bekijk alle schoenen die op Schoenmaatje worden aangeboden, en filter op links of rechts, maat, merk en kleur.">
+<Base title="Aanbod" active="aanbod" description="Losse schoenen te koop, gratis of te ruil. Filter op links of rechts, maat, prijs, merk en kleur.">
   <div class="sm-wrap" style="padding-top:40px;padding-bottom:64px">
     <span class="sm-kicker">Aanbod</span>
-    <h1 class="sm-h1" style="margin:6px 0 28px">Schoenen zoeken een maatje</h1>
+    <h1 class="sm-h1" style="margin:6px 0 28px">Losse schoenen, links en rechts</h1>
     <div class="sm-layout-aanbod">
       <FilterPanel filters={filters} facets={facets} />
       <div>
@@ -31,8 +31,9 @@ cacheBriefly(Astro);
           <span role="status"><b>{total} {total === 1 ? 'schoen' : 'schoenen'}</b> <span class="sm-muted">gevonden</span></span>
           <nav aria-label="Sorteren" style="display:flex;gap:4px;align-items:center">
             <span class="sm-label" style="margin-right:6px">Sorteer</span>
-            <a class:list={['sm-btn sm-btn--sm', filters.sorteer === 'nieuw' ? 'sm-btn--secondary' : 'sm-btn--ghost']} href={withParam('sorteer', 'nieuw')} aria-current={filters.sorteer === 'nieuw' ? 'true' : undefined}>Nieuwste</a>
-            <a class:list={['sm-btn sm-btn--sm', filters.sorteer === 'maat' ? 'sm-btn--secondary' : 'sm-btn--ghost']} href={withParam('sorteer', 'maat')} aria-current={filters.sorteer === 'maat' ? 'true' : undefined}>Maat</a>
+            {SORTS.map((o) => (
+              <a class:list={['sm-btn sm-btn--sm', filters.sorteer === o.value ? 'sm-btn--secondary' : 'sm-btn--ghost']} href={withParam('sorteer', o.value)} aria-current={filters.sorteer === o.value ? 'true' : undefined}>{o.label}</a>
+            ))}
           </nav>
         </div>
         {chips.length > 0 && (

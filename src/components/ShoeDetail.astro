@@ -2,9 +2,9 @@
 import ShoeCard from './ShoeCard.astro';
 import ShoeIcon from './ShoeIcon.astro';
 import SideChip from './SideChip.astro';
-import { COLORS, formatSize, type Shoe } from '../data/shoes';
-interface Props { shoe: Shoe; similar: Shoe[] }
-const { shoe, similar } = Astro.props;
+import { COLORS, OFFER_LABELS, formatSize, priceLabel, type Shoe } from '../data/shoes';
+interface Props { shoe: Shoe; similar: Shoe[]; moreFromOwner: Shoe[] }
+const { shoe, similar, moreFromOwner } = Astro.props;
 const sideLabel = shoe.side === 'links' ? 'Links' : 'Rechts';
 const added = new Date(shoe.addedAt).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
 const [mainPhoto, ...morePhotos] = shoe.photos ?? [];
@@ -26,6 +26,9 @@ const [mainPhoto, ...morePhotos] = shoe.photos ?? [];
     <div>
       <span class="sm-card__brand">{shoe.brand}</span>
       <h1 class="sm-detail__title">{shoe.model}</h1>
+      <p class="sm-detail__price">{priceLabel(shoe)}
+        <small>{shoe.offer === 'verkoop' ? 'Vraagprijs. Betalen spreek je samen af.' : shoe.offer === 'gratis' ? 'Wordt gratis weggegeven.' : 'Alleen te ruil tegen een andere schoen.'}</small>
+      </p>
       <div class="sm-card__tags">
         <span class="sm-tag">Maat {formatSize(shoe.size)}</span>
         <span class="sm-tag">{shoe.fit}</span>
@@ -36,6 +39,7 @@ const [mainPhoto, ...morePhotos] = shoe.photos ?? [];
       )}
       {shoe.description && <p style="margin-top:20px">{shoe.description}</p>}
       <dl class="sm-specs">
+        <dt>Soort</dt><dd>{OFFER_LABELS[shoe.offer]}</dd>
         <dt>Zijde</dt><dd>{sideLabel}</dd>
         <dt>Maat</dt><dd>{formatSize(shoe.size)} (EU)</dd>
         <dt>Pasvorm</dt><dd>{shoe.fit}</dd>
@@ -43,8 +47,16 @@ const [mainPhoto, ...morePhotos] = shoe.photos ?? [];
         <dt>Staat</dt><dd>{shoe.condition}</dd>
         <dt>Plaats</dt><dd>{shoe.place}</dd>
         <dt>Geplaatst</dt><dd>{added}</dd>
-        {shoe.ownerName && <><dt>Aangeboden door</dt><dd>{shoe.ownerName}</dd></>}
       </dl>
+      {shoe.ownerId && shoe.ownerName && (
+        <a class="sm-seller" href={`/maatje/${shoe.ownerId}`} style="margin-bottom:20px">
+          <span class="sm-avatar" aria-hidden="true">{shoe.ownerName.slice(0, 1).toUpperCase()}</span>
+          <span>
+            <span class="sm-seller__name">{shoe.ownerName}</span><br />
+            <span class="sm-seller__meta">{shoe.sellerType === 'handelaar' ? 'Handelaar' : 'Particulier'} · bekijk alle schoenen</span>
+          </span>
+        </a>
+      )}
       <div class="sm-detail__actions">
         <a class="sm-btn sm-btn--primary sm-btn--block" href="/registreren">Maak een account aan</a>
         <p class="sm-hint">Berichten sturen naar de aanbieder komt binnenkort. Met een account kun je nu al zelf schoenen aanbieden.</p>
@@ -52,6 +64,16 @@ const [mainPhoto, ...morePhotos] = shoe.photos ?? [];
       </div>
     </div>
   </div>
+
+  {moreFromOwner.length > 0 && (
+    <section class="sm-section" style="padding-bottom:0">
+      <div class="sm-section__head">
+        <h2 class="sm-h2">Meer van {shoe.ownerName}</h2>
+        <a class="sm-btn sm-btn--secondary sm-btn--sm" href={`/maatje/${shoe.ownerId}`}>Alle schoenen</a>
+      </div>
+      <div class="sm-grid sm-grid--3">{moreFromOwner.map((s) => <ShoeCard shoe={s} />)}</div>
+    </section>
+  )}
 
   {similar.length > 0 && (
     <section class="sm-section" style="padding-bottom:0">

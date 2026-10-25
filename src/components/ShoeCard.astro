@@ -1,5 +1,5 @@
 ---
-import { COLORS, formatSize, relativeDate, type Shoe } from '../data/shoes';
+import { COLORS, formatSize, priceLabel, relativeDate, type Shoe } from '../data/shoes';
 import ShoeIcon from './ShoeIcon.astro';
 import SideChip from './SideChip.astro';
 interface Props { shoe: Shoe }
@@ -16,7 +16,7 @@ const photo = shoe.photos?.[0];
       : <ShoeIcon side={shoe.side} color={COLORS[shoe.color]} />}
   </div>
   <div class="sm-card__body">
-    <span class="sm-card__brand">{shoe.brand}</span>
+    <div class="sm-card__top"><span class="sm-card__brand">{shoe.brand}</span><span class:list={['sm-price', shoe.offer !== 'verkoop' && 'sm-price--free']}>{priceLabel(shoe)}</span></div>
     <h3 class="sm-card__title"><a class="sm-card__link" href={`/schoen/${shoe.id}`}>{shoe.model}<span class="sm-visually-hidden">, {shoe.side}, maat {formatSize(shoe.size)}</span></a></h3>
     <div class="sm-card__tags">
       <span class="sm-tag">Maat {formatSize(shoe.size)}</span>
