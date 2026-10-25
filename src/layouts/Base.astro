@@ -9,7 +9,7 @@ interface Props {
   description?: string;
   active?: 'home' | 'aanbod' | 'werkwijze' | 'contact';
 }
-const { title, description = 'Schoenmaatje: ruil de schoen die je niet draagt. Een ruilplatform voor mensen met één voet of één been.', active } = Astro.props;
+const { title, description = 'Schoenmaatje: koop, verkoop of ruil losse schoenen. Voor mensen met één voet of één been.', active } = Astro.props;
 const fullTitle = title === 'Schoenmaatje' ? title : `${title} · Schoenmaatje`;
 ---
 <!doctype html>

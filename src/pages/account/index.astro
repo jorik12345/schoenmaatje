@@ -30,10 +30,11 @@ if (Astro.request.method === 'POST') {
     if (action === 'profile') {
       const display_name = String(form.get('display_name') ?? '').trim();
       const place = String(form.get('place') ?? '').trim();
+      const seller_type = form.get('seller_type') === 'handelaar' ? 'handelaar' : 'particulier';
       if (!display_name || display_name.length > 40) profileErrors.display_name = 'Vul een naam in van maximaal 40 tekens.';
       if (place.length > 60) profileErrors.place = 'De plaats mag maximaal 60 tekens zijn.';
       if (!Object.keys(profileErrors).length) {
-        await updateProfile(supabase, user.id, { display_name, place: place || null });
+        await updateProfile(supabase, user.id, { display_name, place: place || null, seller_type });
         return Astro.redirect('/account?melding=opgeslagen');
       }
     } else if (action === 'status' || action === 'delete-listing') {
@@ -97,7 +98,18 @@ const hasDefaultName = profile?.display_name === 'Schoenmaatje';
             <span class="sm-hint">Wordt standaard ingevuld bij nieuwe advertenties.</span>
             <FieldError id="a-place-err" error={profileErrors.place} />
           </div>
-          <div><button class="sm-btn sm-btn--secondary sm-btn--sm" type="submit">Opslaan</button></div>
+          <div class="sm-field">
+            <label for="a-seller">Je verkoopt als</label>
+            <select id="a-seller" name="seller_type" class="sm-select">
+              <option value="particulier" selected={profile?.seller_type !== 'handelaar'}>Particulier</option>
+              <option value="handelaar" selected={profile?.seller_type === 'handelaar'}>Handelaar (bedrijf of winkel)</option>
+            </select>
+            <span class="sm-hint">Dit staat bij je advertenties; kopers hebben bij een handelaar meer rechten.</span>
+          </div>
+          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+            <button class="sm-btn sm-btn--secondary sm-btn--sm" type="submit">Opslaan</button>
+            <a class="sm-hint" href={`/maatje/${user.id}`}>Bekijk je openbare profiel</a>
+          </div>
         </form>
         <div class="sm-panel">
           <h2 class="sm-h2" style="font-size:20px;line-height:26px">Inloggen</h2>

@@ -1,7 +1,7 @@
 ---
 import ShoeIcon from './ShoeIcon.astro';
 import SideChip from './SideChip.astro';
-import { COLORS, formatSize } from '../data/shoes';
+import { COLORS, formatSize, priceLabel } from '../data/shoes';
 import { STATUSES } from '../lib/listing-form';
 import type { OwnListing } from '../lib/account';
 interface Props { listing: OwnListing }
@@ -18,6 +18,7 @@ const statusLabel = STATUSES.find((s) => s.value === l.status)?.label ?? l.statu
     <div class="sm-own__meta">
       <SideChip side={l.side} />
       <span class="sm-tag">Maat {formatSize(l.size)}</span>
+      <span class="sm-tag">{priceLabel(l)}</span>
       <span class:list={['sm-status', `sm-status--${l.status}`]}>{statusLabel}</span>
     </div>
   </div>

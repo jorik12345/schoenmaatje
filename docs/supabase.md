@@ -15,7 +15,8 @@ Kies één van twee manieren.
 3. `supabase/migrations/20261020120200_storage.sql`
 4. `supabase/migrations/20261020130000_grants.sql`: de tabelrechten. Nieuwe Supabase-projecten geven die niet meer automatisch; zonder dit bestand krijg je `permission denied for table listings`.
 5. `supabase/migrations/20261021090000_account_delete.sql`: eigen account verwijderen.
-6. Optioneel `supabase/seed.sql` voor twaalf voorbeeldadvertenties (van een demo-gebruiker). **Verwijder die demo-gebruiker voor de livegang** (Authentication → Users → demo@schoenmaatje.nl); de advertenties gaan dan automatisch mee.
+6. `supabase/migrations/20261025090000_selling.sql`: verkopen en weggeven naast ruilen, particulier/handelaar.
+7. Optioneel `supabase/seed.sql` voor twaalf voorbeeldadvertenties (van een demo-gebruiker). **Verwijder die demo-gebruiker voor de livegang** (Authentication → Users → demo@schoenmaatje.nl); de advertenties gaan dan automatisch mee.
 
 **Via de Supabase CLI.**
 ```sh

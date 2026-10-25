@@ -4,21 +4,21 @@ export const prerender = false;
 import Base from '../../layouts/Base.astro';
 import ShoeDetail from '../../components/ShoeDetail.astro';
 import { formatSize } from '../../data/shoes';
-import { getListing, getSimilarListings } from '../../lib/listings';
+import { getListing, getMoreFromOwner, getSimilarListings } from '../../lib/listings';
 import { cacheBriefly } from '../../lib/cache';
 
 const shoe = await getListing(Astro.params.id ?? '');
-const similar = shoe ? await getSimilarListings(shoe, 3) : [];
+const [similar, moreFromOwner] = shoe ? await Promise.all([getSimilarListings(shoe, 3), getMoreFromOwner(shoe, 3)]) : [[], []];
 if (shoe) cacheBriefly(Astro);
 else Astro.response.status = 404;
 ---
 {shoe ? (
   <Base
     title={`${shoe.brand} ${shoe.model}, ${shoe.side}, maat ${formatSize(shoe.size)}`}
-    description={`${shoe.side === 'links' ? 'Linker' : 'Rechter'} ${shoe.brand} ${shoe.model} in maat ${formatSize(shoe.size)} (${shoe.fit.toLowerCase()}), ${shoe.condition.toLowerCase()}, in ${shoe.place}. Te ruil op Schoenmaatje.`}
+    description={`${shoe.side === 'links' ? 'Linker' : 'Rechter'} ${shoe.brand} ${shoe.model} in maat ${formatSize(shoe.size)} (${shoe.fit.toLowerCase()}), ${shoe.condition.toLowerCase()}, in ${shoe.place}. ${shoe.offer === 'verkoop' ? 'Te koop' : shoe.offer === 'gratis' ? 'Gratis' : 'Te ruil'} op Schoenmaatje.`}
     active="aanbod"
   >
-    <ShoeDetail shoe={shoe} similar={similar} />
+    <ShoeDetail shoe={shoe} similar={similar.filter((s) => !moreFromOwner.some((m) => m.id === s.id))} moreFromOwner={moreFromOwner} />
   </Base>
 ) : (
   <Base title="Schoen niet gevonden" active="aanbod">

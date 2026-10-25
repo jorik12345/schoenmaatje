@@ -42,7 +42,7 @@ const brandSuggestions = (await getFacets()).brands.map(([b]) => b);
     <a class="sm-back" href="/account">← Mijn account</a>
     <span class="sm-kicker" style="display:block">Schoen aanbieden</span>
     <h1 class="sm-h1" style="margin:6px 0 8px">Welke schoen draag je niet?</h1>
-    <p class="sm-muted" style="margin-bottom:28px">Je advertentie is direct zichtbaar in het aanbod. Je naam en plaats staan erbij, je e-mailadres niet.</p>
+    <p class="sm-muted" style="margin-bottom:28px">Verkopen, weggeven of ruilen: jij kiest. Je advertentie is direct zichtbaar in het aanbod. Je naam en plaats staan erbij, je e-mailadres niet.</p>
     {error && <div style="margin-bottom:24px"><Alert kind="error" title="Nog niet geplaatst">{error}</Alert></div>}
     <ListingForm values={values} errors={errors} brandSuggestions={brandSuggestions} submitLabel="Advertentie plaatsen" />
   </div>

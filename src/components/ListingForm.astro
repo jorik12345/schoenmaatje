@@ -1,8 +1,8 @@
 ---
 import FieldError from './FieldError.astro';
-import { COLORS, formatSize, type ColorName } from '../data/shoes';
-import { FITS } from '../data/filters';
-import { CONDITIONS, FORM_SIZES, MAX_PHOTOS, type FieldErrors, type ListingInput } from '../lib/listing-form';
+import { COLORS, OFFER_LABELS, formatSize, type ColorName } from '../data/shoes';
+import { FITS, OFFERS } from '../data/filters';
+import { CONDITIONS, FORM_SIZES, MAX_PHOTOS, centsToInput, type FieldErrors, type ListingInput } from '../lib/listing-form';
 import type { OwnPhoto } from '../lib/account';
 
 interface Props {
@@ -25,6 +25,24 @@ const err = (k: keyof FieldErrors) => (errors[k] ? `fout-${k}` : undefined);
     </div>
     <FieldError id="fout-side" error={errors.side} />
   </fieldset>
+
+  <div class="sm-form__row" style="align-items:start">
+    <fieldset class="sm-field" style="border:0;padding:0;margin:0" aria-describedby={err('offer')}>
+      <legend class="sm-label" style="margin-bottom:6px">Wat wil je ermee?</legend>
+      <div class="sm-seg sm-seg--block" style="grid-template-columns:repeat(3,1fr)">
+        {OFFERS.map((o) => (
+          <label><input type="radio" name="offer" value={o} checked={values.offer === o} required data-offer /><span>{OFFER_LABELS[o]}</span></label>
+        ))}
+      </div>
+      <FieldError id="fout-offer" error={errors.offer} />
+    </fieldset>
+    <div class:list={['sm-field', errors.price_cents && 'sm-field--error']} data-price-field>
+      <label for="f-price">Vraagprijs in euro's</label>
+      <input id="f-price" name="price" class="sm-input" inputmode="decimal" value={centsToInput(values.price_cents)} placeholder="Bijv. 25" maxlength="8" aria-describedby={errors.price_cents ? 'fout-price_cents' : 'hint-price'} />
+      <span class="sm-hint" id="hint-price">Alleen bij Te koop. Betalen spreken jullie samen af, bijvoorbeeld met een betaalverzoek of contant.</span>
+      <FieldError id="fout-price_cents" error={errors.price_cents} />
+    </div>
+  </div>
 
   <div class="sm-form__row">
     <div class:list={['sm-field', errors.brand && 'sm-field--error']}>
@@ -169,6 +187,15 @@ const err = (k: keyof FieldErrors) => (errors[k] ? `fout-${k}` : undefined);
     }));
     submit.disabled = false;
   });
+
+  // Prijsveld alleen tonen bij "Te koop" (zonder JavaScript blijft het zichtbaar met uitleg).
+  const priceField = form?.querySelector<HTMLElement>('[data-price-field]');
+  const syncPrice = () => {
+    const offer = form?.querySelector<HTMLInputElement>('[data-offer]:checked')?.value;
+    if (priceField) priceField.hidden = offer !== 'verkoop';
+  };
+  form?.querySelectorAll('[data-offer]').forEach((el) => el.addEventListener('change', syncPrice));
+  syncPrice();
 
   form?.addEventListener('submit', () => {
     if (submit) { submit.disabled = true; submit.textContent = 'Bezig met opslaan…'; }

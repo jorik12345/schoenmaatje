@@ -1,6 +1,6 @@
 # Schoenmaatje
 
-Ruilplatform voor mensen met één voet of één been: bied de schoen aan die je niet draagt en vind iemand met dezelfde maat die precies die kant nodig heeft.
+Platform voor mensen met één voet of één been: koop, verkoop of ruil losse schoenen, en volg mensen met dezelfde maat.
 
 ## Ontwikkelen
 

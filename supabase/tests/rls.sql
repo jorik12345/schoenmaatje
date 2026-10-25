@@ -115,3 +115,30 @@ select pg_temp.ok(
   and not exists (select 1 from public.conversations where starter_id = '00000000-0000-4000-8000-00000000000b')
   and not exists (select 1 from public.saved_searches where user_id = '00000000-0000-4000-8000-00000000000b'),
   'advertenties, gesprekken en zoekopdrachten van B zijn mee verwijderd');
+
+-- Verkopen (fase 4a) ----------------------------------------------------------
+-- Let op: B en C zijn hierboven verwijderd; we maken D aan.
+insert into auth.users (id, raw_user_meta_data) values ('00000000-0000-4000-8000-00000000000d', '{"display_name":"Dirk"}');
+create or replace function pg_temp.expect_check(sql text, label text) returns void language plpgsql as $$
+begin
+  execute sql;
+  raise exception 'FOUT: % had moeten falen', label;
+exception when check_violation then
+  raise notice 'ok  %', label;
+end $$;
+begin; set local role authenticated; set local request.jwt.claim.sub = '00000000-0000-4000-8000-00000000000d';
+insert into listings (owner_id, side, brand, model, size, fit, color, condition, place, offer, price_cents)
+  values ('00000000-0000-4000-8000-00000000000d','links','Nike','Te koop',42,'Heren','Wit','Goed','Delft','verkoop',2500);
+insert into listings (owner_id, side, brand, model, size, fit, color, condition, place, offer)
+  values ('00000000-0000-4000-8000-00000000000d','links','Nike','Gratis',42,'Heren','Wit','Goed','Delft','gratis');
+select pg_temp.ok(true, 'D plaatst een verkoop- en een gratis advertentie');
+select pg_temp.expect_check($$insert into listings (owner_id, side, brand, model, size, fit, color, condition, place, offer) values ('00000000-0000-4000-8000-00000000000d','links','X','Y',42,'Heren','Wit','Goed','Delft','verkoop')$$, 'te koop zonder prijs kan niet');
+select pg_temp.expect_check($$insert into listings (owner_id, side, brand, model, size, fit, color, condition, place, offer, price_cents) values ('00000000-0000-4000-8000-00000000000d','links','X','Y',42,'Heren','Wit','Goed','Delft','gratis',100)$$, 'gratis met prijs kan niet');
+with u as (update listings set offer = 'ruil', price_cents = null where model = 'Te koop' returning 1) select pg_temp.ok((select count(*) from u) = 1, 'D kan soort en prijs wijzigen');
+update listings set status = 'verkocht' where model = 'Gratis';
+with u as (update profiles set seller_type = 'handelaar' where id = '00000000-0000-4000-8000-00000000000d' returning 1) select pg_temp.ok((select count(*) from u) = 1, 'D kan particulier/handelaar wijzigen');
+commit;
+begin; set local role anon;
+select pg_temp.ok(not exists (select 1 from listings where model = 'Gratis'), 'verkochte advertentie is niet openbaar');
+select pg_temp.ok((select count(*) from listings where offer = 'ruil') >= 1, 'bestaande advertenties zijn ruiladvertenties');
+commit;

@@ -14,7 +14,7 @@ if (!supabase || !user) return Astro.redirect(`/inloggen?naar=${encodeURICompone
 const listing = await getOwnListing(supabase, user.id, Astro.params.id ?? '');
 if (!listing) Astro.response.status = 404;
 
-let values: Partial<ListingInput> = listing ?? {};
+let values: Partial<ListingInput> = listing ? { ...listing, price_cents: listing.priceCents ?? null } : {};
 let errors: FieldErrors = {};
 let removePhotoIds: string[] = [];
 let error: string | null = null;
